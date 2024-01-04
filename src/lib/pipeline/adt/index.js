@@ -37,8 +37,18 @@ class ADT {
     return 32 - (position / this.SIZE) | 0;
   }
 
+  //static loadTile(map, tileX, tileY, wdtFlags) {
+  //  return ADT.load(`World\\Maps\\${map}\\${map}_${tileY}_${tileX}.adt`, wdtFlags);
+  //}
+
   static loadTile(map, tileX, tileY, wdtFlags) {
-    return ADT.load(`World\\Maps\\${map}\\${map}_${tileY}_${tileX}.adt`, wdtFlags);
+    // Construct the filename using + for concatenation and print it
+    let filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
+    console.log("1Loading tile filename:", filename);
+    filename = 'World\\Maps\\' + "Azeroth" + '\\' + "Azeroth" + '_' + tileY + '_' + tileX + '.adt';
+    console.log("1Loading tile filename:", filename);
+
+    return ADT.load(filename, wdtFlags);
   }
 
   static loadAtCoords(map, x, y, wdtFlags) {

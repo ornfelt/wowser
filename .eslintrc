@@ -1,8 +1,27 @@
 {
-  "extends": "timkurvers/react",
+  "extends": "@timkurvers/eslint-config/react",
   "rules": {
     // Allow vertically aligning values
     "no-multi-spaces": [0],
+
+    "comma-dangle": "off",
+    "max-len": "off",
+    "object-shorthand": "off",
+    "no-case-declarations": "off",
+    "prefer-template": "off",
+    "padded-blocks": "off",
+
+    "no-cond-assign": "off",
+    "no-param-reassign": "off",
+    "no-useless-constructor": "off",
+
+    "no-else-return": "off",
+    "no-unused-vars": "off",
+    "consistent-return": "off",
+    "react/prefer-stateless-function": "off",
+
+    "quotes": "off",
+    "spaced-comment": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

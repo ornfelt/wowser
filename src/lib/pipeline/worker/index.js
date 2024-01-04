@@ -13,7 +13,7 @@ const loaders = {
   M2,
   WDT,
   WMO,
-  WMOGroup
+  WMOGroup,
 };
 
 const fulfill = function(type, result) {

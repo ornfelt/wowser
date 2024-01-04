@@ -122,10 +122,26 @@ class WorldMap extends THREE.Group {
     this.wmoManager.animate(delta, camera, cameraMoved);
   }
 
+  //static load(id) {
+  //  return DBC.load('Map', id).then((data) => {
+  //    const { internalName: name } = data;
+  //    return WDT.load(`World\\Maps\\${name}\\${name}.wdt`).then((wdt) => {
+  //      return new this(data, wdt);
+  //    });
+  //  });
+  //}
+
   static load(id) {
     return DBC.load('Map', id).then((data) => {
       const { internalName: name } = data;
-      return WDT.load(`World\\Maps\\${name}\\${name}.wdt`).then((wdt) => {
+
+      // Construct the filename and print it
+      let filename = 'World\\Maps\\' + name + '\\' + name + '.wdt';
+      console.log("2Loading filename:", filename);
+      filename = 'World\\Maps\\Azeroth\\Azeroth.wdt';
+      console.log("2Loading filename:", filename);
+
+      return WDT.load(filename).then((wdt) => {
         return new this(data, wdt);
       });
     });
