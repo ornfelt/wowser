@@ -23,6 +23,13 @@
     "quotes": "off",
     "spaced-comment": "off",
 
+    "vars-on-top": "off",
+    "no-var": "off",
+
+    "space-infix-ops": "off",
+    "block-scoped-var": "off",
+    "comma-spacing": "off",
+
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],
 
