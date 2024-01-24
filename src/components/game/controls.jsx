@@ -87,7 +87,8 @@ class Controls extends React.Component {
         unit.moveForward(delta);
       }
 
-      if (key.isPressed('down') || key.isPressed('s')) {
+      //if (key.isPressed('down') || key.isPressed('s')) {
+      if (key.isPressed('down')) {
         unit.moveBackward(delta);
       }
 
@@ -103,7 +104,8 @@ class Controls extends React.Component {
         unit.ascend(delta);
       }
 
-      if (key.isPressed('x')) {
+      //if (key.isPressed('x')) {
+      if (key.isPressed('s')) {
         unit.descend(delta);
       }
 
