@@ -74,7 +74,7 @@ class RealmsScreen extends React.Component {
                       onChange={ this._onRealmSelect }>
                 { this.state.realms.map((realm) => {
                   return (
-                    <option key={ realm.ord } value={ realm }>
+                    <option key={ realm.id } value={ realm }>
                       { realm.name }
                     </option>
                   );
