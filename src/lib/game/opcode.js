@@ -19,6 +19,8 @@ class GameOpcode {
 
   static SMSG_UPDATE_OBJECT                 = 0x00A9;
 
+  static CMSG_JOIN_CHANNEL                  = 0x0097;
+
   static SMSG_MONSTER_MOVE                  = 0x00DD;
 
   static SMSG_TUTORIAL_FLAGS                = 0x00FD;
@@ -34,6 +36,9 @@ class GameOpcode {
   static SMSG_SPELL_GO                      = 0x0132;
 
   static SMSG_BINDPOINT_UPDATE              = 0x0155;
+
+  static CMSG_PING                          = 0x01DC;
+  static SMSG_PONG                          = 0x01DD;
 
   static SMSG_ITEM_TIME_UPDATE              = 0x01EA;
 
@@ -63,6 +68,8 @@ class GameOpcode {
   static SMSG_MOTD                          = 0x033D;
 
   static SMSG_TIME_SYNC_REQ                 = 0x0390;
+
+  static SMSG_GM_MESSAGECHAT                = 0x03B3;
 
   static SMSG_FEATURE_SYSTEM_STATUS         = 0x03C9;
 
