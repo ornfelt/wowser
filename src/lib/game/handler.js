@@ -39,10 +39,11 @@ class GameHandler extends Socket {
     this.on('packet:receive:SMSG_NAME_QUERY_RESPONSE', ::this.handleName);
   }
 
-  // Connects to given host through given port
-  connect(host, port) {
+  // Connects to given host through given realm information
+  connect(host, realm) {
+    this.realm = realm;
     if (!this.connected) {
-      super.connect(host, port);
+      super.connect(host, realm.port);
       console.info('connecting to game-server @', this.host, ':', this.port);
     }
     return this;
@@ -222,7 +223,7 @@ class GameHandler extends Socket {
     app.write(seed.toArray());   // client-seed
     app.writeUnsignedInt(0);     // (?)
     app.writeUnsignedInt(0);     // (?)
-    app.writeUnsignedInt(0);     // (?)
+    app.writeUnsignedInt(this.realm.id);     // realmid
     app.writeUnsignedInt(0);     // (?)
     app.writeUnsignedInt(0);     // (?)
     app.write(hash.digest);      // digest
@@ -269,6 +270,7 @@ class GameHandler extends Socket {
 
     this.emit('join');
   }
+
 
   joinWorldChannel() {
       console.log("join world");

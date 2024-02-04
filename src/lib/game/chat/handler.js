@@ -71,7 +71,9 @@ class ChatHandler extends EventEmitter {
 
     const app = new GamePacket(GameOpcode.CMSG_MESSAGE_CHAT, size);
     app.writeUnsignedInt(type); // type
-    app.writeUnsignedInt(0); // lang , 0: universal [TODO: use race specific ]
+    // ornfelt
+    //app.writeUnsignedInt(0); // lang , 0: universal [TODO: use race specific ]
+    app.writeUnsignedInt(1); // lang , 0: universal [TODO: use race specific ]
 
     switch(type) {
         case ChatEnum.CHAT_MSG_SAY:
