@@ -1,0 +1,25 @@
+From 75107a907e02173fa275a832218a0dbddfa331cb Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Tue, 20 Dec 2016 20:33:25 +0100
+Subject: [PATCH 04/26] fixed compatibility with AzerothCore and SunwellCore
+
+---
+ src/lib/config.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/config.js b/src/lib/config.js
+index d042c8b..1f65e33 100644
+--- a/src/lib/config.js
++++ b/src/lib/config.js
+@@ -4,7 +4,7 @@ class Raw {
+   }
+ 
+   raw(value) {
+-    return ('\u0000\u0000\u0000\u0000' + value.split('').reverse().join('')).slice(-4);
++    return (value.split('').reverse().join('')+'\u0000' ).slice(0,4);
+   }
+ 
+   get locale() {
+-- 
+2.43.0
+

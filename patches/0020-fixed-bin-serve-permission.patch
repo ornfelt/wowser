@@ -1,0 +1,16 @@
+From b7848a26229da73c473a2d838012b3ca6ae57863 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Fri, 18 Aug 2017 02:06:12 +0200
+Subject: [PATCH 20/26] fixed bin/serve permission
+
+---
+ bin/serve | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ mode change 100755 => 100644 bin/serve
+
+diff --git a/bin/serve b/bin/serve
+old mode 100755
+new mode 100644
+-- 
+2.43.0
+

@@ -1,0 +1,42 @@
+From b69fa2bfad577e8327994e3887dd260e96973da7 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Wed, 21 Dec 2016 14:50:09 +0100
+Subject: [PATCH 09/26] fixed ping overspeed on some servers
+
+---
+ src/lib/game/handler.js | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index 9619225..b22e52d 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -7,6 +7,7 @@ import GamePacket from './packet';
+ import GUID from '../game/guid';
+ import SHA1 from '../crypto/hash/sha1';
+ import Socket from '../net/socket';
++import ChatEnum from '../game/chat/chatEnum';
+ 
+ class GameHandler extends Socket {
+ 
+@@ -120,7 +121,7 @@ class GameHandler extends Socket {
+   ping() {
+     console.log("ping");
+     if (this.pingRecv === false) {
+-       location.reload();
++        location.reload();
+     }
+ 
+     const app = new GamePacket(GameOpcode.CMSG_PING, GamePacket.OPCODE_SIZE_INCOMING + 64);
+@@ -202,7 +203,7 @@ class GameHandler extends Socket {
+     var that=this;
+     setInterval(function() {
+       that.ping()
+-    },10000)
++    },50000)
+ 
+     this.joinWorldChannel();
+ 
+-- 
+2.43.0
+

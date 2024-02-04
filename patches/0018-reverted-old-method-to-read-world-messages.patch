@@ -1,0 +1,26 @@
+From 442b715d18dd28bfeabd2a0b9904dda691551882 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Fri, 23 Dec 2016 01:37:47 +0100
+Subject: [PATCH 18/26] reverted old method to read world messages
+
+---
+ src/lib/game/chat/handler.js | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index c516a41..b8cbc73 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -148,7 +148,8 @@ class ChatHandler extends EventEmitter {
+           return;
+ 
+         var _unk=gp.readUnsignedInt();
+-        text = gp.readCString();
++        len = gp.length - gp.index - 2; // channel buffer min size
++        text = gp.readString(len);
+       break;
+       case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
+         len = gp.readUnsignedInt();
+-- 
+2.43.0
+

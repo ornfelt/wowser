@@ -1,0 +1,73 @@
+From 48028b398be20eaf3f9426b376fbda2ddaeca4ec Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Tue, 6 Jun 2017 14:24:30 +0200
+Subject: [PATCH 24/26] allow custom auth port
+
+---
+ conf/conf.js.dist             | 3 ++-
+ src/components/auth/index.jsx | 2 +-
+ src/lib/auth/handler.js       | 7 +++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/conf/conf.js.dist b/conf/conf.js.dist
+index 4647990..f4a300b 100644
+--- a/conf/conf.js.dist
++++ b/conf/conf.js.dist
+@@ -1,6 +1,7 @@
+ var Conf = {
+     "welcome" : "Welcome to wowser client",
+-    "slogan" : "Browser Demo client"
++    "slogan" : "Browser JavaScript and WebGL Game Client",
++    "authport" : "3724"
+ }
+ 
+ module.exports = Conf;
+\ No newline at end of file
+diff --git a/src/components/auth/index.jsx b/src/components/auth/index.jsx
+index 6a0c518..2b5d05c 100644
+--- a/src/components/auth/index.jsx
++++ b/src/components/auth/index.jsx
+@@ -12,7 +12,7 @@ class AuthScreen extends React.Component {
+ 
+     this.state = {
+       host: window.location.hostname,
+-      port: session.auth.constructor.PORT,
++      port: session.auth.defport,
+       username: '',
+       password: ''
+     };
+diff --git a/src/lib/auth/handler.js b/src/lib/auth/handler.js
+index fc02500..7219be2 100644
+--- a/src/lib/auth/handler.js
++++ b/src/lib/auth/handler.js
+@@ -6,9 +6,6 @@ import SRP from '../crypto/srp';
+ 
+ class AuthHandler extends Socket {
+ 
+-  // Default port for the auth-server
+-  static PORT = 3724;
+-
+   // Creates a new authentication handler
+   constructor(session) {
+     super();
+@@ -16,6 +13,8 @@ class AuthHandler extends Socket {
+     // Holds session
+     this.session = session;
+ 
++    this.defport = this.session.config.authport;
++
+     // Holds credentials for this session (if any)
+     this.account = null;
+     this.password = null;
+@@ -39,7 +38,7 @@ class AuthHandler extends Socket {
+   // Connects to given host through given port
+   connect(host, port = NaN) {
+     if (!this.connected) {
+-      super.connect(host, port || this.constructor.PORT);
++      super.connect(host, port || this.defport);
+       console.info('connecting to auth-server @', this.host, ':', this.port);
+     }
+     return this;
+-- 
+2.43.0
+

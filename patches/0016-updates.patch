@@ -1,0 +1,116 @@
+From 3406d75b142c95fe99d135490cd630ef51da7c21 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Thu, 22 Dec 2016 15:19:54 +0100
+Subject: [PATCH 16/26] updates
+
+---
+ src/components/characters/index.jsx | 2 +-
+ src/lib/game/chat/handler.js        | 6 ++++++
+ src/lib/game/handler.js             | 2 +-
+ src/lib/game/opcode.js              | 2 ++
+ src/lib/net/socket.js               | 8 +++++++-
+ 5 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/src/components/characters/index.jsx b/src/components/characters/index.jsx
+index cf4783e..f44bba7 100644
+--- a/src/components/characters/index.jsx
++++ b/src/components/characters/index.jsx
+@@ -72,7 +72,7 @@ class CharactersScreen extends React.Component {
+           <div className="divider"></div>
+ 
+           <p>
+-            At some point this screen will allow managing characters. Soon™
++            If you want to create a character, please use the official WoW Client
+           </p>
+ 
+           <form onSubmit={ this._onSubmit }>
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index 4cee538..47d8019 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -46,6 +46,7 @@ class ChatHandler extends EventEmitter {
+     // Listen for messages
+     this.session.game.on('packet:receive:SMSG_GM_MESSAGECHAT', ::this.handleGmMessage);
+     this.session.game.on('packet:receive:SMSG_MESSAGE_CHAT', ::this.handleMessage);
++    this.session.game.on('packet:receive:SMSG_CHANNEL_NOTIFY', ::this.handleNotify);
+   }
+ 
+   // Creates chat message
+@@ -84,10 +85,15 @@ class ChatHandler extends EventEmitter {
+     return true;
+   }
+ 
++  handleNotify(gp) {
++    console.log(gp);
++  }
++
+   handleGmMessage(gp) {
+     this.handleMessage(gp,true);
+   }
+ 
++
+   // Message handler (SMSG_MESSAGE_CHAT)
+   handleMessage(gp,isGm) {
+     var guid2 = 0;
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index 123744c..5eba5fd 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -182,7 +182,7 @@ class GameHandler extends Socket {
+   ping() {
+     console.log("ping");
+     if (this.pingRecv === false) {
+-        location.reload();
++        this.disconnect();
+     }
+ 
+     const app = new GamePacket(GameOpcode.CMSG_PING, GamePacket.OPCODE_SIZE_INCOMING + 64);
+diff --git a/src/lib/game/opcode.js b/src/lib/game/opcode.js
+index ee12bd9..e66d683 100644
+--- a/src/lib/game/opcode.js
++++ b/src/lib/game/opcode.js
+@@ -19,6 +19,8 @@ class GameOpcode {
+ 
+   static CMSG_JOIN_CHANNEL                  = 0x0097;
+ 
++  static SMSG_CHANNEL_NOTIFY                = 0x0099;
++
+   static SMSG_UPDATE_OBJECT                 = 0x00A9;
+ 
+   static SMSG_MONSTER_MOVE                  = 0x00DD;
+diff --git a/src/lib/net/socket.js b/src/lib/net/socket.js
+index 2668b3d..4ea527d 100644
+--- a/src/lib/net/socket.js
++++ b/src/lib/net/socket.js
+@@ -35,6 +35,8 @@ class Socket extends EventEmitter {
+   // Connects to given host through given port (if any; default port is implementation specific)
+   connect(host, port = NaN) {
+     if (!this.connected) {
++      var that = this;
++
+       this.host = host;
+       this.port = port;
+       this.uri = 'ws://' + this.host + ':' + this.port;
+@@ -50,7 +52,7 @@ class Socket extends EventEmitter {
+       };
+ 
+       this.socket.onclose = (e) => {
+-        this.emit('disconnect', e);
++        that.disconnect();
+       };
+ 
+       this.socket.onmessage = (e) => {
+@@ -86,6 +88,10 @@ class Socket extends EventEmitter {
+     if (this.connected) {
+       this.socket.close();
+     }
++
++    alert("You have been disconnected");
++    location.reload();
++
+     return this;
+   }
+ 
+-- 
+2.43.0
+

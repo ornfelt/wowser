@@ -1,0 +1,25 @@
+From 9a055455476660647b6c9269698c25bb5d2580f0 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Thu, 22 Dec 2016 12:44:55 +0100
+Subject: [PATCH 13/26] fixed player name
+
+---
+ src/lib/game/handler.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index 06cf7ae..585a5c2 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -151,7 +151,7 @@ class GameHandler extends Socket {
+     const declined = gp.readUnsignedByte();
+     */
+ 
+-    this.player.name=name;
++    this.session.player.name=name;
+     
+     this.playerNames[guid] = {
+         name : name
+-- 
+2.43.0
+

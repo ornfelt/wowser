@@ -1,0 +1,86 @@
+From 4fdfe59c94600fa6c42bf5efe9fc0ff6ac45bdda Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Tue, 6 Jun 2017 12:58:57 +0200
+Subject: [PATCH 22/26] Implemented custom configuration file
+
+---
+ .gitignore                      | 7 ++++++-
+ conf/conf.js.dist               | 6 ++++++
+ src/components/wowser/index.jsx | 2 +-
+ src/lib/config.js               | 3 +++
+ src/lib/game/chat/handler.js    | 2 +-
+ 5 files changed, 17 insertions(+), 3 deletions(-)
+ create mode 100644 conf/conf.js.dist
+
+diff --git a/.gitignore b/.gitignore
+index cc71c6c..6a1f212 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -6,4 +6,9 @@
+ /public/templates/
+ /spec/
+ /nbproject/private/
+-/npm-debug.log
++/npm-debug.log*
++/conf/*
++!/conf/conf.js.dist
++
++*~
++package-lock.json
+\ No newline at end of file
+diff --git a/conf/conf.js.dist b/conf/conf.js.dist
+new file mode 100644
+index 0000000..4647990
+--- /dev/null
++++ b/conf/conf.js.dist
+@@ -0,0 +1,6 @@
++var Conf = {
++    "welcome" : "Welcome to wowser client",
++    "slogan" : "Browser Demo client"
++}
++
++module.exports = Conf;
+\ No newline at end of file
+diff --git a/src/components/wowser/index.jsx b/src/components/wowser/index.jsx
+index 1f998ea..e4fa26c 100644
+--- a/src/components/wowser/index.jsx
++++ b/src/components/wowser/index.jsx
+@@ -54,7 +54,7 @@ class Wowser extends React.Component {
+         <div className="branding">
+           <header>Wowser</header>
+           <div className="divider"></div>
+-          <div className="slogan">World of Warcraft in the browser</div>
++          <div className="slogan">{ session.config.slogan }</div>
+         </div>
+ 
+         <select className="screen-selector"
+diff --git a/src/lib/config.js b/src/lib/config.js
+index 1f65e33..d5d604a 100644
+--- a/src/lib/config.js
++++ b/src/lib/config.js
+@@ -33,6 +33,9 @@ class Config {
+     this.os = 'Win';
+     this.platform = 'x86';
+ 
++    var Custom=require("../../conf/conf.js");
++    Object.assign(this,Custom);
++
+     this.raw = new Raw(this);
+   }
+ 
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index b8cbc73..c5281d6 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -18,7 +18,7 @@ class ChatHandler extends EventEmitter {
+ 
+     this.playerNames = this.session.game.playerNames;
+ 
+-    var welcome = new Message('system', 'Welcome to Drassil WoW Web Client! [ Chat developed by Yehonal ]',0);
++    var welcome = new Message('system', this.session.config.title,0);
+ 
+     // Holds messages
+     this.sayMessages = [
+-- 
+2.43.0
+

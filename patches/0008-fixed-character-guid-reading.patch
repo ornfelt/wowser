@@ -1,0 +1,27 @@
+From d49adb91b004f183555d90f0191d25434ffeb1f8 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Wed, 21 Dec 2016 14:49:09 +0100
+Subject: [PATCH 08/26] fixed character guid reading
+
+---
+ src/lib/game/guid.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/game/guid.js b/src/lib/game/guid.js
+index 9a220f6..8cb3932 100644
+--- a/src/lib/game/guid.js
++++ b/src/lib/game/guid.js
+@@ -19,8 +19,8 @@ class GUID {
+ 
+   // Short string representation of this GUID
+   toString() {
+-    const high = ('0000' + this.high.toString(16)).slice(-4);
+-    const low = ('0000' + this.low.toString(16)).slice(-4);
++    const high = ('00000000' + this.high.toString(16)).slice(-8);
++    const low = ('00000000' + this.low.toString(16)).slice(-8);
+     return `[GUID; Hex: 0x${high}${low}]`;
+   }
+ 
+-- 
+2.43.0
+

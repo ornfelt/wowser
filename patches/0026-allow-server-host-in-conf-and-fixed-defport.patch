@@ -1,0 +1,60 @@
+From b9cedd71547ea1bfb1673a141098896a3d94ed7b Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Tue, 6 Jun 2017 14:38:12 +0200
+Subject: [PATCH 26/26] allow server host in conf and fixed defport
+
+---
+ conf/conf.js.dist             | 1 +
+ src/components/auth/index.jsx | 2 +-
+ src/lib/auth/handler.js       | 3 ++-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/conf/conf.js.dist b/conf/conf.js.dist
+index f4a300b..a061b96 100644
+--- a/conf/conf.js.dist
++++ b/conf/conf.js.dist
+@@ -1,6 +1,7 @@
+ var Conf = {
+     "welcome" : "Welcome to wowser client",
+     "slogan" : "Browser JavaScript and WebGL Game Client",
++    "serverhost" : window.location.hostname,
+     "authport" : "3724"
+ }
+ 
+diff --git a/src/components/auth/index.jsx b/src/components/auth/index.jsx
+index 2b5d05c..6b3e5f2 100644
+--- a/src/components/auth/index.jsx
++++ b/src/components/auth/index.jsx
+@@ -11,7 +11,7 @@ class AuthScreen extends React.Component {
+     super();
+ 
+     this.state = {
+-      host: window.location.hostname,
++      host: session.auth.defhost,
+       port: session.auth.defport,
+       username: '',
+       password: ''
+diff --git a/src/lib/auth/handler.js b/src/lib/auth/handler.js
+index 7219be2..c8f388b 100644
+--- a/src/lib/auth/handler.js
++++ b/src/lib/auth/handler.js
+@@ -14,6 +14,7 @@ class AuthHandler extends Socket {
+     this.session = session;
+ 
+     this.defport = this.session.config.authport;
++    this.defhost = this.session.config.serverhost;
+ 
+     // Holds credentials for this session (if any)
+     this.account = null;
+@@ -38,7 +39,7 @@ class AuthHandler extends Socket {
+   // Connects to given host through given port
+   connect(host, port = NaN) {
+     if (!this.connected) {
+-      super.connect(host, port || this.defport);
++      super.connect(host || this.defhost, port || this.defport);
+       console.info('connecting to auth-server @', this.host, ':', this.port);
+     }
+     return this;
+-- 
+2.43.0
+

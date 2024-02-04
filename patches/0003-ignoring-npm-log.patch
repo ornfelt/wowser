@@ -1,0 +1,22 @@
+From e342fb722dda67e6ab86d6e2e1011618fb94baa2 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Sun, 18 Dec 2016 02:03:55 +0100
+Subject: [PATCH 03/26] ignoring npm log
+
+---
+ .gitignore | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/.gitignore b/.gitignore
+index 2109276..cc71c6c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,3 +5,5 @@
+ /public/styles/
+ /public/templates/
+ /spec/
++/nbproject/private/
++/npm-debug.log
+-- 
+2.43.0
+

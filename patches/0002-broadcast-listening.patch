@@ -1,0 +1,25 @@
+From e9db8eaddae7341a165df83a70479bac17cc2953 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Sun, 18 Dec 2016 02:03:09 +0100
+Subject: [PATCH 02/26] broadcast listening
+
+---
+ package.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package.json b/package.json
+index 2134add..799b388 100644
+--- a/package.json
++++ b/package.json
+@@ -20,7 +20,7 @@
+     "pretest": "gulp rebuild",
+     "reset": "gulp reset",
+     "test": "istanbul test ./node_modules/mocha/bin/_mocha -- spec --recursive",
+-    "web-dev": "webpack-dev-server",
++    "web-dev": "webpack-dev-server --host 0.0.0.0",
+     "web-release": "webpack --optimize --progress"
+   },
+   "repository": "wowserhq/wowser",
+-- 
+2.43.0
+

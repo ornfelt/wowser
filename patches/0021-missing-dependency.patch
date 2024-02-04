@@ -1,0 +1,24 @@
+From 3ed0a44dd2cb397b31dc61b399eff753a8b0cdd6 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Tue, 6 Jun 2017 11:07:31 +0200
+Subject: [PATCH 21/26] missing dependency
+
+---
+ package.json | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/package.json b/package.json
+index 799b388..73c9fe8 100644
+--- a/package.json
++++ b/package.json
+@@ -50,6 +50,7 @@
+     "pngjs": "^2.3.0",
+     "react": "^0.14.3",
+     "react-dom": "^0.14.3",
++    "react-tabs": "^0.8.2",
+     "three": "^0.77.0",
+     "websockify": "^0.7.1"
+   },
+-- 
+2.43.0
+

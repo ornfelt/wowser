@@ -1,0 +1,570 @@
+From 7f97841207920a5806e935f4465f669ca0a6d29b Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Wed, 21 Dec 2016 02:02:19 +0100
+Subject: [PATCH 06/26] Implemented guild , world and gm chat
+
+---
+ src/components/game/chat/blizzIcon.gif | Bin 0 -> 303 bytes
+ src/components/game/chat/index.jsx     |  35 +++--
+ src/components/game/chat/index.styl    |   9 ++
+ src/lib/game/chat/chatEnum.js          |  58 +++++++++
+ src/lib/game/chat/handler.js           | 173 +++++++++++++++----------
+ src/lib/game/handler.js                |  54 +++++++-
+ src/lib/game/opcode.js                 |   7 +
+ 7 files changed, 251 insertions(+), 85 deletions(-)
+ create mode 100644 src/components/game/chat/blizzIcon.gif
+ create mode 100644 src/lib/game/chat/chatEnum.js
+
+diff --git a/src/components/game/chat/blizzIcon.gif b/src/components/game/chat/blizzIcon.gif
+new file mode 100644
+index 0000000000000000000000000000000000000000..b5cc227872bb23b5247fc08afcaabb6d97d26724
+GIT binary patch
+literal 303
+zcmV+~0nq+ONk%w1VH5xj0K^{v0s;aK4-W$l4h9t#0BP3%c<B~*{T77$43zx`eftrs
+z{S=!02^<{(m-7Uq`UkrH0Bh<7z5fQW{s33f5X1cfhx8I@`Uj5x08zgHhUo|*BnWB$
+z09)-LhWZ2#8vp<QA^8LW0018VEC2ui02BZX000H7;1`T!834jriq>IFfE7#z)+MfC
+z8G$GylLP>;0UQJb!T|!o9C{x>L4X(<09QZ)Gei)ef<j{fI}oiyP9pXB2o{9G;%x*l
+zhexRBGQ12L099~O7Xoc<R6_{_3IGa>0~w7T0Sq4li3N`j6$%v&3kX#J5)2G~4-FI%
+z1rb9-0u2ul5fTFo1rijTQWOOax(^u+#03l*rvl2$Nl67L0s{jYht-$Tn9|lE06R9!
+BTgU(a
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/components/game/chat/index.jsx b/src/components/game/chat/index.jsx
+index a9b221a..bc2576b 100644
+--- a/src/components/game/chat/index.jsx
++++ b/src/components/game/chat/index.jsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import classes from 'classnames';
+ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
++import ChatEnum from '../../../lib/game/chat/chatEnum';
+ 
+ import './index.styl';
+ 
+@@ -17,8 +18,8 @@ class ChatPanel extends React.Component {
+       guildText: '',
+       worldText: '',
+       sayMessages: session.chat.sayMessages,
+-      guildMessages: [],
+-      worldMessages: []
++      guildMessages: session.chat.guildMessages,
++      worldMessages: session.chat.worldMessages
+     };
+ 
+     this._onChangeSay = ::this._onChangeSay;
+@@ -28,8 +29,8 @@ class ChatPanel extends React.Component {
+     this._onMessageGuild = ::this._onMessageGuild;
+     this._onSubmitGuild = ::this._onSubmitGuild;
+     this._onChangeWorld = ::this._onChangeWorld;
+-    this._onMessageWorld = ::this._onMessageGuild;
+-    this._onSubmitWorld = ::this._onSubmitGuild;
++    this._onMessageWorld = ::this._onMessageWorld;
++    this._onSubmitWorld = ::this._onSubmitWorld;
+ 
+     session.chat.on('message', this._onMessageSay);
+   }
+@@ -50,7 +51,7 @@ class ChatPanel extends React.Component {
+   sendSay(text) {
+     const message = session.chat.create();
+     message.text = text;
+-    session.chat.send(text);
++    session.chat.send(text,ChatEnum.CHAT_MSG_SAY);
+   }
+ 
+   _onChangeSay(event) {
+@@ -76,7 +77,7 @@ class ChatPanel extends React.Component {
+   sendGuild(text) {
+     const message = session.chat.create();
+     message.text = text;
+-    session.chat.send(text);
++    session.chat.send(text,ChatEnum.CHAT_MSG_GUILD);
+   }
+ 
+   _onChangeGuild(event) {
+@@ -101,7 +102,7 @@ class ChatPanel extends React.Component {
+   sendWorld(text) {
+     const message = session.chat.create();
+     message.text = text;
+-    session.chat.send(text);
++    session.chat.send(text,ChatEnum.CHAT_MSG_CHANNEL);
+   }
+ 
+   _onChangeWorld(event) {
+@@ -129,7 +130,6 @@ class ChatPanel extends React.Component {
+         <chat className="chat frame" ref="chat">
+             <Tabs
+                 onSelect={this.handleSelect}
+-                selectedIndex={0}
+               >
+                 <TabList>
+                   <Tab>Say</Tab>
+@@ -142,9 +142,10 @@ class ChatPanel extends React.Component {
+                           const className = classes('message', message.kind);
+                           return (
+                             <li className={ className } key={ index }>
+-                                <span class="time">[{this._getTime(message.timestamp)}] </span>
+-                                <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
+-                                Says: { message.text }
++                              <span class="time">[{this._getTime(message.timestamp)}] </span>
++                              <span class="flags">{this.state.playerNames[message.guid1] && this.state.playerNames[message.guid1].isGm ? "[GM]" : ""}</span>
++                              <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
++                              Says: { message.text }
+                             </li>
+                           );
+                         }) }
+@@ -161,7 +162,11 @@ class ChatPanel extends React.Component {
+                           const className = classes('message', message.kind);
+                           return (
+                             <li className={ className } key={ index }>
+-                              { message.text }
++                              <span class="time">[{this._getTime(message.timestamp)}] </span>
++                              <span class="type">[Guild]</span>
++                              <span class="flags">{this.state.playerNames[message.guid1] && this.state.playerNames[message.guid1].isGm ? "[GM]" : ""}</span>
++                              <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
++                              : { message.text }
+                             </li>
+                           );
+                         }) }
+@@ -178,7 +183,11 @@ class ChatPanel extends React.Component {
+                           const className = classes('message', message.kind);
+                           return (
+                             <li class="message.guid" className={ className } key={ index }>
+-                              { message.text }
++                              <span class="time">[{this._getTime(message.timestamp)}] </span>
++                              <span class="type">[World]</span>
++                              <span class="flags">{this.state.playerNames[message.guid1] && this.state.playerNames[message.guid1].isGm ? "[GM]" : ""}</span>
++                              <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
++                              : { message.text }
+                             </li>
+                           );
+                         }) }
+diff --git a/src/components/game/chat/index.styl b/src/components/game/chat/index.styl
+index 6e99b0c..7f1af8c 100644
+--- a/src/components/game/chat/index.styl
++++ b/src/components/game/chat/index.styl
+@@ -17,6 +17,15 @@ wowser .chat
+     &.system
+       color: #FFCC00
+ 
++    &.me
++      color: #D2691E
++
++    &.me
++      color: #D2691E
++
++    &.yell
++      color: #B22222
++
+     &.info
+       color: #26C9FF
+ 
+diff --git a/src/lib/game/chat/chatEnum.js b/src/lib/game/chat/chatEnum.js
+new file mode 100644
+index 0000000..9937eaf
+--- /dev/null
++++ b/src/lib/game/chat/chatEnum.js
+@@ -0,0 +1,58 @@
++
++class ChatEnum {
++    static CHAT_MSG_ADDON                  = 0xFFFFFFFF;
++    static CHAT_MSG_SYSTEM                 = 0x00;
++    static CHAT_MSG_SAY                    = 0x01;
++    static CHAT_MSG_PARTY                  = 0x02;
++    static CHAT_MSG_RAID                   = 0x03;
++    static CHAT_MSG_GUILD                  = 0x04;
++    static CHAT_MSG_OFFICER                = 0x05;
++    static CHAT_MSG_YELL                   = 0x06;
++    static CHAT_MSG_WHISPER                = 0x07;
++    static CHAT_MSG_WHISPER_FOREIGN        = 0x08;
++    static CHAT_MSG_WHISPER_INFORM         = 0x09;
++    static CHAT_MSG_EMOTE                  = 0x0A;
++    static CHAT_MSG_TEXT_EMOTE             = 0x0B;
++    static CHAT_MSG_MONSTER_SAY            = 0x0C;
++    static CHAT_MSG_MONSTER_PARTY          = 0x0D;
++    static CHAT_MSG_MONSTER_YELL           = 0x0E;
++    static CHAT_MSG_MONSTER_WHISPER        = 0x0F;
++    static CHAT_MSG_MONSTER_EMOTE          = 0x10;
++    static CHAT_MSG_CHANNEL                = 0x11;
++    static CHAT_MSG_CHANNEL_JOIN           = 0x12;
++    static CHAT_MSG_CHANNEL_LEAVE          = 0x13;
++    static CHAT_MSG_CHANNEL_LIST           = 0x14;
++    static CHAT_MSG_CHANNEL_NOTICE         = 0x15;
++    static CHAT_MSG_CHANNEL_NOTICE_USER    = 0x16;
++    static CHAT_MSG_AFK                    = 0x17;
++    static CHAT_MSG_DND                    = 0x18;
++    static CHAT_MSG_IGNORED                = 0x19;
++    static CHAT_MSG_SKILL                  = 0x1A;
++    static CHAT_MSG_LOOT                   = 0x1B;
++    static CHAT_MSG_MONEY                  = 0x1C;
++    static CHAT_MSG_OPENING                = 0x1D;
++    static CHAT_MSG_TRADESKILLS            = 0x1E;
++    static CHAT_MSG_PET_INFO               = 0x1F;
++    static CHAT_MSG_COMBAT_MISC_INFO       = 0x20;
++    static CHAT_MSG_COMBAT_XP_GAIN         = 0x21;
++    static CHAT_MSG_COMBAT_HONOR_GAIN      = 0x22;
++    static CHAT_MSG_COMBAT_FACTION_CHANGE  = 0x23;
++    static CHAT_MSG_BG_SYSTEM_NEUTRAL      = 0x24;
++    static CHAT_MSG_BG_SYSTEM_ALLIANCE     = 0x25;
++    static CHAT_MSG_BG_SYSTEM_HORDE        = 0x26;
++    static CHAT_MSG_RAID_LEADER            = 0x27;
++    static CHAT_MSG_RAID_WARNING           = 0x28;
++    static CHAT_MSG_RAID_BOSS_EMOTE        = 0x29;
++    static CHAT_MSG_RAID_BOSS_WHISPER      = 0x2A;
++    static CHAT_MSG_FILTERED               = 0x2B;
++    static CHAT_MSG_BATTLEGROUND           = 0x2C;
++    static CHAT_MSG_BATTLEGROUND_LEADER    = 0x2D;
++    static CHAT_MSG_RESTRICTED             = 0x2E;
++    static CHAT_MSG_BATTLENET              = 0x2F;
++    static CHAT_MSG_ACHIEVEMENT            = 0x30;
++    static CHAT_MSG_GUILD_ACHIEVEMENT      = 0x31;
++    static CHAT_MSG_ARENA_POINTS           = 0x32;
++    static CHAT_MSG_PARTY_LEADER           = 0x33;
++}
++
++export default ChatEnum;
+\ No newline at end of file
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index eda19e2..b607202 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -3,62 +3,10 @@ import EventEmitter from 'events';
+ import Message from './message';
+ import GamePacket from '../packet';
+ import GameOpcode from '../opcode';
++import ChatEnum from './chatEnum';
+ 
+ class ChatHandler extends EventEmitter {
+ 
+-    static CHAT_MSG_ADDON                  = 0xFFFFFFFF;
+-    static CHAT_MSG_SYSTEM                 = 0x00;
+-    static CHAT_MSG_SAY                    = 0x01;
+-    static CHAT_MSG_PARTY                  = 0x02;
+-    static CHAT_MSG_RAID                   = 0x03;
+-    static CHAT_MSG_GUILD                  = 0x04;
+-    static CHAT_MSG_OFFICER                = 0x05;
+-    static CHAT_MSG_YELL                   = 0x06;
+-    static CHAT_MSG_WHISPER                = 0x07;
+-    static CHAT_MSG_WHISPER_FOREIGN        = 0x08;
+-    static CHAT_MSG_WHISPER_INFORM         = 0x09;
+-    static CHAT_MSG_EMOTE                  = 0x0A;
+-    static CHAT_MSG_TEXT_EMOTE             = 0x0B;
+-    static CHAT_MSG_MONSTER_SAY            = 0x0C;
+-    static CHAT_MSG_MONSTER_PARTY          = 0x0D;
+-    static CHAT_MSG_MONSTER_YELL           = 0x0E;
+-    static CHAT_MSG_MONSTER_WHISPER        = 0x0F;
+-    static CHAT_MSG_MONSTER_EMOTE          = 0x10;
+-    static CHAT_MSG_CHANNEL                = 0x11;
+-    static CHAT_MSG_CHANNEL_JOIN           = 0x12;
+-    static CHAT_MSG_CHANNEL_LEAVE          = 0x13;
+-    static CHAT_MSG_CHANNEL_LIST           = 0x14;
+-    static CHAT_MSG_CHANNEL_NOTICE         = 0x15;
+-    static CHAT_MSG_CHANNEL_NOTICE_USER    = 0x16;
+-    static CHAT_MSG_AFK                    = 0x17;
+-    static CHAT_MSG_DND                    = 0x18;
+-    static CHAT_MSG_IGNORED                = 0x19;
+-    static CHAT_MSG_SKILL                  = 0x1A;
+-    static CHAT_MSG_LOOT                   = 0x1B;
+-    static CHAT_MSG_MONEY                  = 0x1C;
+-    static CHAT_MSG_OPENING                = 0x1D;
+-    static CHAT_MSG_TRADESKILLS            = 0x1E;
+-    static CHAT_MSG_PET_INFO               = 0x1F;
+-    static CHAT_MSG_COMBAT_MISC_INFO       = 0x20;
+-    static CHAT_MSG_COMBAT_XP_GAIN         = 0x21;
+-    static CHAT_MSG_COMBAT_HONOR_GAIN      = 0x22;
+-    static CHAT_MSG_COMBAT_FACTION_CHANGE  = 0x23;
+-    static CHAT_MSG_BG_SYSTEM_NEUTRAL      = 0x24;
+-    static CHAT_MSG_BG_SYSTEM_ALLIANCE     = 0x25;
+-    static CHAT_MSG_BG_SYSTEM_HORDE        = 0x26;
+-    static CHAT_MSG_RAID_LEADER            = 0x27;
+-    static CHAT_MSG_RAID_WARNING           = 0x28;
+-    static CHAT_MSG_RAID_BOSS_EMOTE        = 0x29;
+-    static CHAT_MSG_RAID_BOSS_WHISPER      = 0x2A;
+-    static CHAT_MSG_FILTERED               = 0x2B;
+-    static CHAT_MSG_BATTLEGROUND           = 0x2C;
+-    static CHAT_MSG_BATTLEGROUND_LEADER    = 0x2D;
+-    static CHAT_MSG_RESTRICTED             = 0x2E;
+-    static CHAT_MSG_BATTLENET              = 0x2F;
+-    static CHAT_MSG_ACHIEVEMENT            = 0x30;
+-    static CHAT_MSG_GUILD_ACHIEVEMENT      = 0x31;
+-    static CHAT_MSG_ARENA_POINTS           = 0x32;
+-    static CHAT_MSG_PARTY_LEADER           = 0x33;
+ 
+   // Creates a new chat handler
+   constructor(session) {
+@@ -85,7 +33,11 @@ class ChatHandler extends EventEmitter {
+       new Message('guild', '[Guild] Someone: This is a guild message',0)
+     ];
+ 
++    this.guildMessages = [];
++    this.worldMessages = []
++
+     // Listen for messages
++    this.session.game.on('packet:receive:SMSG_GM_MESSAGECHAT', ::this.handleGmMessage);
+     this.session.game.on('packet:receive:SMSG_MESSAGE_CHAT', ::this.handleMessage);
+     this.session.game.on('packet:receive:SMSG_NAME_QUERY_RESPONSE', ::this.handleName);
+   }
+@@ -97,10 +49,30 @@ class ChatHandler extends EventEmitter {
+ 
+   // Sends given message
+   send(_message,type) {
+-    const app = new GamePacket(GameOpcode.CMSG_MESSAGE_CHAT, 64+_message.length);
+-    app.writeUnsignedInt(1); // type , 1: say [TODO: select channel ]
++    var size=64+_message.length;
++
++    var channel = "world\0";
++
++
++    if (type==ChatEnum.CHAT_MSG_CHANNEL) {
++        size += channel.length;
++    }
++
++    const app = new GamePacket(GameOpcode.CMSG_MESSAGE_CHAT, size);
++    app.writeUnsignedInt(type); // type
++
+     app.writeUnsignedInt(0); // lang , 0: universal [TODO: use race specific ]
+-    app.writeString(_message);
++
++    switch(type) {
++        case ChatEnum.CHAT_MSG_SAY:
++        case ChatEnum.CHAT_MSG_GUILD:
++              app.writeString(_message);
++        break;
++        case ChatEnum.CHAT_MSG_CHANNEL:
++              app.writeString(channel);
++              app.writeString(_message);
++        break;
++    }
+ 
+     this.session.game.send(app);
+     return true;
+@@ -140,30 +112,89 @@ class ChatHandler extends EventEmitter {
+     return true;
+   }
+ 
++  handleGmMessage(gp) {
++    this.handleMessage(gp,true);
++  }
++
+   // Message handler (SMSG_MESSAGE_CHAT)
+-  handleMessage(gp) {
++  handleMessage(gp,isGm) {
+     const type = gp.readUnsignedByte(); // type
+     const lang = gp.readUnsignedInt(); // language
+     const guid1 = gp.readGUID();
+     const unk1 = gp.readUnsignedInt();
+-    const guid2 = gp.readGUID(); // guid2
+-    const len = gp.readUnsignedInt();
+-    const text = gp.readString(len);
+-    const flags = gp.readUnsignedByte(); // flags
+-    
+-    if (!this.playerNames[guid1.low]) {    
+-        this.playerNames[guid2.low]= { name: guid1.low };
+-        this.askName(guid1);
++
++    if (isGm === true)
++    {
++        var nameLen =  gp.readUnsignedInt();
++        var senderName = gp.readString(nameLen);
++
++        this.playerNames[guid1.low] = { 
++            name : senderName,
++            isGm : true
++        };
++
++    } else {
++        if (!this.playerNames[guid1.low]) {    
++            this.playerNames[guid1.low]= { name: guid1.low };
++            this.askName(guid1);
++        }
+     }
+ 
+-    if (!this.playerNames[guid2.low]) {
+-        this.playerNames[guid2.low]= { name: guid2.low };
+-        this.askName(guid2);
++    var channelName="";
++
++    const len = 0;
++    const text = "";
++    const flags = 0;
++
++    if (type === ChatEnum.CHAT_MSG_CHANNEL)
++    {
++        // hardcoded channel
++        channelName = gp.readString(5);
++        if (channelName !== "world")
++          return;
++
++        len = gp.length - 26; // channel buffer min size
++
++        text = gp.readString(len);
++    } else {
++      const guid2 = gp.readGUID(); // guid2
++
++      if (!this.playerNames[guid2.low]) {
++          this.playerNames[guid2.low]= { name: guid2.low };
++          this.askName(guid2);
++      }
++
++      len = gp.readUnsignedInt();
++
++      text = gp.readString(len);
++
++      flags = gp.readUnsignedByte(); // flags
+     }
+ 
+-    const message = new Message("area", text, guid1.low);
+-    
+-    this.sayMessages.push(message);
++    const message = null;
++
++    switch(type) {
++        case ChatEnum.CHAT_MSG_SAY:
++            message = new Message("area", text, guid1.low);
++            this.sayMessages.push(message);
++        break;
++        case ChatEnum.CHAT_MSG_EMOTE:
++            message = new Message("me", text, guid1.low);
++            this.sayMessages.push(message);
++        break;
++        case ChatEnum.CHAT_MSG_YELL:
++            message = new Message("yell", text, guid1.low);
++            this.sayMessages.push(message);
++        break;
++        case ChatEnum.CHAT_MSG_GUILD:
++            message = new Message("guild", text, guid1.low);
++            this.guildMessages.push(message);
++        break;
++        case ChatEnum.CHAT_MSG_CHANNEL:
++            message = new Message("channel", text, guid1.low);
++            this.worldMessages.push(message);
++        break;
++    }
+ 
+     this.emit('message', message);
+   }
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index e7ab05e..9619225 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -10,6 +10,8 @@ import Socket from '../net/socket';
+ 
+ class GameHandler extends Socket {
+ 
++  static pingRecv = true;
++
+   // Creates a new game handler
+   constructor(session) {
+     super();
+@@ -21,6 +23,7 @@ class GameHandler extends Socket {
+     this.on('data:receive', ::this.dataReceived);
+ 
+     // Delegate packets
++    this.on('packet:receive:SMSG_PONG', ::this.handlePong);
+     this.on('packet:receive:SMSG_AUTH_CHALLENGE', ::this.handleAuthChallenge);
+     this.on('packet:receive:SMSG_AUTH_RESPONSE', ::this.handleAuthResponse);
+     this.on('packet:receive:SMSG_LOGIN_VERIFY_WORLD', ::this.handleWorldLogin);
+@@ -107,6 +110,28 @@ class GameHandler extends Socket {
+     }
+   }
+ 
++  // Pong handler (SMSG_PONG)
++  handlePong(gp) {
++    console.log("pong");
++    this.pingRecv = true;
++    var ping=gp.readUnsignedInt(); // (0x01)
++  }
++
++  ping() {
++    console.log("ping");
++    if (this.pingRecv === false) {
++       location.reload();
++    }
++
++    const app = new GamePacket(GameOpcode.CMSG_PING, GamePacket.OPCODE_SIZE_INCOMING + 64);
++    app.writeUnsignedInt(1);      // ping ( unknown value)
++    app.writeUnsignedInt(10);     // latency, 10ms for now
++
++    this.pingRecv = false;
++
++    this.send(app);
++  }
++
+   // Auth challenge handler (SMSG_AUTH_CHALLENGE)
+   handleAuthChallenge(gp) {
+     console.info('handling auth challenge');
+@@ -174,9 +199,36 @@ class GameHandler extends Socket {
+ 
+   // World login handler (SMSG_LOGIN_VERIFY_WORLD)
+   handleWorldLogin(_gp) {
++    var that=this;
++    setInterval(function() {
++      that.ping()
++    },10000)
++
++    this.joinWorldChannel();
++
++
+     this.emit('join');
+   }
+ 
++
++  joinWorldChannel() {
++      console.log("join world");
++
++      var channel="world";
++      var pass="";
++
++      var size=1 + 16 +  4 + 4 + channel.length + pass.length;
++      const app = new GamePacket(GameOpcode.CMSG_JOIN_CHANNEL, size);
++      app.writeUnsignedInt(0);
++      app.writeByte(0);
++      app.writeByte(0);
++      app.writeString(channel);
++      app.writeString(pass);
++
++      this.session.game.send(app);
++      return true;
++  }
++
+ }
+ 
+-export default GameHandler;
++export default GameHandler;
+\ No newline at end of file
+diff --git a/src/lib/game/opcode.js b/src/lib/game/opcode.js
+index d8cd46d..ee12bd9 100644
+--- a/src/lib/game/opcode.js
++++ b/src/lib/game/opcode.js
+@@ -17,6 +17,8 @@ class GameOpcode {
+   static CMSG_MESSAGE_CHAT                  = 0x0095;
+   static SMSG_MESSAGE_CHAT                  = 0x0096;
+ 
++  static CMSG_JOIN_CHANNEL                  = 0x0097;
++
+   static SMSG_UPDATE_OBJECT                 = 0x00A9;
+ 
+   static SMSG_MONSTER_MOVE                  = 0x00DD;
+@@ -35,6 +37,9 @@ class GameOpcode {
+ 
+   static SMSG_BINDPOINT_UPDATE              = 0x0155;
+ 
++  static CMSG_PING                          = 0x01DC;
++  static SMSG_PONG                          = 0x01DD;
++
+   static SMSG_ITEM_TIME_UPDATE              = 0x01EA;
+ 
+   static SMSG_AUTH_CHALLENGE                = 0x01EC;
+@@ -64,6 +69,8 @@ class GameOpcode {
+ 
+   static SMSG_TIME_SYNC_REQ                 = 0x0390;
+ 
++  static SMSG_GM_MESSAGECHAT                = 0x03B3;
++
+   static SMSG_FEATURE_SYSTEM_STATUS         = 0x03C9;
+ 
+   static SMSG_SERVER_BUCK_DATA              = 0x041D;
+-- 
+2.43.0
+

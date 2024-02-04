@@ -1,0 +1,93 @@
+From c8547d6ed9431b8dfba0b7f9960a46d6264bc7b5 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Sun, 18 Dec 2016 02:02:24 +0100
+Subject: [PATCH 01/26] first commit for chat implementation
+
+---
+ src/components/game/chat/index.jsx |  2 +-
+ src/components/game/hud/index.jsx  |  3 ++-
+ src/lib/game/chat/handler.js       | 20 ++++++++++++++------
+ 3 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/src/components/game/chat/index.jsx b/src/components/game/chat/index.jsx
+index df30e18..9e93ed5 100644
+--- a/src/components/game/chat/index.jsx
++++ b/src/components/game/chat/index.jsx
+@@ -29,7 +29,7 @@ class ChatPanel extends React.Component {
+   send(text) {
+     const message = session.chat.create();
+     message.text = text;
+-    session.chat.messages.push(message);
++    session.chat.send(text);
+   }
+ 
+   _onChange(event) {
+diff --git a/src/components/game/hud/index.jsx b/src/components/game/hud/index.jsx
+index ec5878d..c1a328f 100644
+--- a/src/components/game/hud/index.jsx
++++ b/src/components/game/hud/index.jsx
+@@ -2,7 +2,7 @@ import React from 'react';
+ 
+ import './index.styl';
+ 
+-// TODO: import Chat from '../chat';
++import Chat from '../chat';
+ import Portrait from '../portrait';
+ // TODO: import Quests from '../quests';
+ import session from '../../wowser/session';
+@@ -15,6 +15,7 @@ class HUD extends React.Component {
+       <hud className="hud">
+         <Portrait self unit={ player } />
+         { player.target && <Portrait target unit={ player.target } /> }
++        <Chat />
+       </hud>
+     );
+   }
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index 73bfe33..e076acc 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -1,6 +1,8 @@
+ import EventEmitter from 'events';
+ 
+ import Message from './message';
++import GamePacket from '../packet';
++import GameOpcode from '../opcode';
+ 
+ class ChatHandler extends EventEmitter {
+ 
+@@ -36,19 +38,25 @@ class ChatHandler extends EventEmitter {
+ 
+   // Sends given message
+   send(_message) {
+-    throw new Error('sending chat messages is not yet implemented');
++    const app = new GamePacket(GameOpcode.CMSG_MESSAGE_CHAT, 64+_message.length);
++    app.writeUnsignedInt(1); // type , 1: say [TODO: select channel ]
++    app.writeUnsignedInt(1); // lang , 0: universal [TODO: use race specific ]
++    app.writeString(_message);
++
++    this.session.game.send(app);
++    return true;
+   }
+ 
+   // Message handler (SMSG_MESSAGE_CHAT)
+   handleMessage(gp) {
+-    gp.readUnsignedByte(); // type
+-    gp.readUnsignedInt(); // language
++    const type = gp.readUnsignedByte(); // type
++    const lang = gp.readUnsignedInt(); // language
+     const guid1 = gp.readGUID();
+-    gp.readUnsignedInt();
+-    gp.readGUID(); // guid2
++    const unk1 = gp.readUnsignedInt();
++    const guid2 = gp.readGUID(); // guid2
+     const len = gp.readUnsignedInt();
+     const text = gp.readString(len);
+-    gp.readUnsignedByte(); // flags
++    const flags = gp.readUnsignedByte(); // flags
+ 
+     const message = new Message();
+     message.text = text;
+-- 
+2.43.0
+

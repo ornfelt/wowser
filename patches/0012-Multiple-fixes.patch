@@ -1,0 +1,557 @@
+From 9a6fa9395a7ea937a1822608788651ccc8514382 Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Thu, 22 Dec 2016 12:17:08 +0100
+Subject: [PATCH 12/26] Multiple fixes
+
+---
+ src/components/game/chat/index.jsx     |  53 ++++++++--
+ src/components/game/chat/index.styl    |  11 +-
+ src/components/game/portrait/index.jsx |   1 +
+ src/components/wowser/index.styl       |   2 +-
+ src/lib/game/chat/handler.js           | 136 +++++++++++++------------
+ src/lib/game/handler.js                |  51 ++++++++++
+ src/lib/game/player.js                 |   6 +-
+ src/lib/game/unit.js                   |   4 +-
+ src/lib/index.js                       |   2 -
+ 9 files changed, 184 insertions(+), 82 deletions(-)
+
+diff --git a/src/components/game/chat/index.jsx b/src/components/game/chat/index.jsx
+index bc2576b..54c375b 100644
+--- a/src/components/game/chat/index.jsx
++++ b/src/components/game/chat/index.jsx
+@@ -19,7 +19,8 @@ class ChatPanel extends React.Component {
+       worldText: '',
+       sayMessages: session.chat.sayMessages,
+       guildMessages: session.chat.guildMessages,
+-      worldMessages: session.chat.worldMessages
++      worldMessages: session.chat.worldMessages,
++      logsMessages: session.chat.logsMessages
+     };
+ 
+     this._onChangeSay = ::this._onChangeSay;
+@@ -31,6 +32,7 @@ class ChatPanel extends React.Component {
+     this._onChangeWorld = ::this._onChangeWorld;
+     this._onMessageWorld = ::this._onMessageWorld;
+     this._onSubmitWorld = ::this._onSubmitWorld;
++    this._onMessageLogs = ::this._onMessageLogs;
+ 
+     session.chat.on('message', this._onMessageSay);
+   }
+@@ -42,6 +44,17 @@ class ChatPanel extends React.Component {
+       document.getElementById("worldMessages").scrollTop   = document.getElementById("worldMessages").scrollHeight;
+     else if (document.getElementById("guildMessages"))
+       document.getElementById("guildMessages").scrollTop   = document.getElementById("guildMessages").scrollHeight;
++    else if (document.getElementById("logsMessages"))
++      document.getElementById("logsMessages").scrollTop   = document.getElementById("guildMessages").scrollHeight;
++  }
++
++  forceScroll() {
++    if (document.getElementById("sayMessages"))
++      document.getElementById("sayMessages").scrollTop   = document.getElementById("sayMessages").scrollHeight;
++    if (document.getElementById("worldMessages"))
++      document.getElementById("worldMessages").scrollTop   = document.getElementById("worldMessages").scrollHeight;
++    if (document.getElementById("guildMessages"))
++      document.getElementById("guildMessages").scrollTop   = document.getElementById("guildMessages").scrollHeight;
+   }
+ 
+ /*
+@@ -51,7 +64,7 @@ class ChatPanel extends React.Component {
+   sendSay(text) {
+     const message = session.chat.create();
+     message.text = text;
+-    session.chat.send(text,ChatEnum.CHAT_MSG_SAY);
++    session.chat.send(text, ChatEnum.CHAT_MSG_SAY);
+   }
+ 
+   _onChangeSay(event) {
+@@ -120,7 +133,16 @@ class ChatPanel extends React.Component {
+       this.setState({ worldText: '' });
+     }
+   }
++
++  /*
++    LOGS
++   */
++
++  _onMessageLogs() {
++    this.setState({ logsMessages: session.chat.logsMessages });
++  }
+   
++
+   _getTime(local) {
+       return local.getHours() + ":" + local.getMinutes() + ":" + local.getSeconds();
+   }
+@@ -129,15 +151,16 @@ class ChatPanel extends React.Component {
+     return (
+         <chat className="chat frame" ref="chat">
+             <Tabs
+-                onSelect={this.handleSelect}
++                onSelect={this.forceScroll}
+               >
+                 <TabList>
+                   <Tab>Say</Tab>
+                   <Tab>Guild</Tab>
+                   <Tab>World</Tab>
++                  <Tab>Logs</Tab>
+                 </TabList>
+                 <TabPanel>
+-                      <ul id="sayMessages">
++                      <ul id="sayMessages" className="chat-box">
+                         { this.state.sayMessages.map((message, index) => {
+                           const className = classes('message', message.kind);
+                           return (
+@@ -145,7 +168,7 @@ class ChatPanel extends React.Component {
+                               <span class="time">[{this._getTime(message.timestamp)}] </span>
+                               <span class="flags">{this.state.playerNames[message.guid1] && this.state.playerNames[message.guid1].isGm ? "[GM]" : ""}</span>
+                               <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
+-                              Says: { message.text }
++                              {message.kind === "whisper incoming" ? "whispers" : "Says"}: { message.text }
+                             </li>
+                           );
+                         }) }
+@@ -157,7 +180,7 @@ class ChatPanel extends React.Component {
+                       </form>
+                 </TabPanel>
+                 <TabPanel>
+-                      <ul ref="guildMessages">
++                      <ul id="guildMessages" className="chat-box">
+                         { this.state.guildMessages.map((message, index) => {
+                           const className = classes('message', message.kind);
+                           return (
+@@ -178,7 +201,7 @@ class ChatPanel extends React.Component {
+                       </form>
+                 </TabPanel>
+                 <TabPanel>
+-                      <ul id="worldMessages">
++                      <ul id="worldMessages" className="chat-box">
+                         { this.state.worldMessages.map((message, index) => {
+                           const className = classes('message', message.kind);
+                           return (
+@@ -198,6 +221,22 @@ class ChatPanel extends React.Component {
+                                name="text" value={ this.state.worldText } />
+                       </form>
+                 </TabPanel>
++                <TabPanel>
++                      <ul id="logsMessages" className="chat-box">
++                        { this.state.logsMessages.map((message, index) => {
++                          const className = classes('message', message.kind);
++                          return (
++                            <li class="message.guid" className={ className } key={ index }>
++                              <span class="time">[{this._getTime(message.timestamp)}] </span>
++                              <span class="type">[World]</span>
++                              <span class="flags">{this.state.playerNames[message.guid1] && this.state.playerNames[message.guid1].isGm ? "[GM]" : ""}</span>
++                              <span class="{message.guid1}">[{this.state.playerNames[message.guid1] ? this.state.playerNames[message.guid1].name : message.guid1}] </span>
++                              : { message.text }
++                            </li>
++                          );
++                        }) }
++                      </ul>
++                </TabPanel>
+             </Tabs>
+         </chat>
+     );
+diff --git a/src/components/game/chat/index.styl b/src/components/game/chat/index.styl
+index 7f1af8c..4a3ac9a 100644
+--- a/src/components/game/chat/index.styl
++++ b/src/components/game/chat/index.styl
+@@ -2,10 +2,17 @@ wowser .chat
+   position: absolute
+   bottom: 0
+   left: 0
+-  width: 400px
++  max-width: 800px
++  min-width: 230px
++  max-height: 100%
++  min-height: 320px
++  z-index: 9000
++
++  .chat-box
++    height: 245px
+ 
+   ul
+-    height: 182px
++    max-width: 900px
+     padding: 0
+     margin: .4em
+     list-style: none
+diff --git a/src/components/game/portrait/index.jsx b/src/components/game/portrait/index.jsx
+index 3bab58d..26c8f35 100644
+--- a/src/components/game/portrait/index.jsx
++++ b/src/components/game/portrait/index.jsx
+@@ -13,6 +13,7 @@ class Portrait extends React.Component {
+ 
+   render() {
+     const unit = this.props.unit;
++
+     const className = classes('portrait', {
+       self: this.props.self,
+       target: this.props.target
+diff --git a/src/components/wowser/index.styl b/src/components/wowser/index.styl
+index e110a99..9d9349e 100644
+--- a/src/components/wowser/index.styl
++++ b/src/components/wowser/index.styl
+@@ -29,7 +29,7 @@ wowser
+     position: absolute
+     top: 10px
+     right: 10px
+-    z-index: 4
++    z-index: 1
+ 
+     header
+       width: 204px
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index ca66739..27a34e9 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -14,32 +14,38 @@ class ChatHandler extends EventEmitter {
+ 
+     // Holds session
+     this.session = session;
+-    
+-    // [guid] = name
+-    this.playerNames = [];
+ 
+-    this.playerNames[0] = { name : "SYSTEM" };
++    this.playerNames = this.session.game.playerNames;
++
++    var welcome = new Message('system', 'Welcome to Drassil WoW Web Client! [ Chat developed by Yehonal ]',0);
+ 
+     // Holds messages
+     this.sayMessages = [
+-      new Message('system', 'This is a very alpha-ish build.',0),
+-
+-      new Message('info', 'This is an info message',0),
+-      new Message('error', 'This is an error message',0),
+-      new Message('area', 'Player: This is a message emitted nearby',0),
+-      new Message('channel', '[Trade]: This is a channel message',0),
+-      new Message('whisper outgoing', 'To Someone: This is an outgoing whisper',0),
+-      new Message('whisper incoming', 'Someone: This is an incoming whisper',0),
+-      new Message('guild', '[Guild] Someone: This is a guild message',0)
++        welcome,
++        new Message('info', 'This is an info message',0),
++        new Message('error', 'This is an error message',0),
++        new Message('area', 'Player: This is a message emitted nearby',0),
++        new Message('whisper outgoing', 'To Someone: This is an outgoing whisper',0),
++        new Message('whisper incoming', 'Someone: This is an incoming whisper',0)
++    ];
++
++    this.guildMessages = [
++        welcome,
++        new Message('guild', '[Guild] Someone: This is your guild channel (if you have a guild)',0)
+     ];
++    this.worldMessages = [
++        welcome,
++        new Message('channel', '[World]: This is the official world channel',0),
++    ]
+ 
+-    this.guildMessages = [];
+-    this.worldMessages = []
++    this.logsMessages = [
++        welcome,
++        new Message('info', '[Logs]: This is a log window',0),
++    ]
+ 
+     // Listen for messages
+     this.session.game.on('packet:receive:SMSG_GM_MESSAGECHAT', ::this.handleGmMessage);
+     this.session.game.on('packet:receive:SMSG_MESSAGE_CHAT', ::this.handleMessage);
+-    this.session.game.on('packet:receive:SMSG_NAME_QUERY_RESPONSE', ::this.handleName);
+   }
+ 
+   // Creates chat message
+@@ -77,41 +83,6 @@ class ChatHandler extends EventEmitter {
+     this.session.game.send(app);
+     return true;
+   }
+-  
+-  handleName(gp) {
+-    const unk = gp.readUnsignedByte();
+-    const guid = unk > 1 ? gp.readUnsignedInt() : gp.readUnsignedByte(); // strange behaviour 
+-    //const name_known = gp.readUnsignedByte();
+-    const name = gp.readString();
+-
+-    
+-    // the buffer is empty now o_O
+-    /*
+-    const realm_name = gp.readUnsignedByte(); // only for crossrealm
+-    const race = gp.readUnsignedByte();
+-    const gender = gp.readUnsignedByte(); // guid2
+-    const playerClass = gp.readUnsignedByte();
+-    const declined = gp.readUnsignedByte();
+-    */
+-    
+-    this.playerNames[guid] = {
+-        name : name
+-        //race : race,
+-        //gender : gender,
+-        //playerClass : playerClass
+-    };
+-    
+-    this.emit("message",null); // to refresh
+-  }
+-  
+-  askName(guid) {
+-    const app = new GamePacket(GameOpcode.CMSG_NAME_QUERY, 64);
+-
+-    app.writeGUID(guid);
+-
+-    this.session.game.send(app);
+-    return true;
+-  }
+ 
+   handleGmMessage(gp) {
+     this.handleMessage(gp,true);
+@@ -119,6 +90,8 @@ class ChatHandler extends EventEmitter {
+ 
+   // Message handler (SMSG_MESSAGE_CHAT)
+   handleMessage(gp,isGm) {
++    var guid2 = 0;
++
+     const type = gp.readUnsignedByte(); // type
+     const lang = gp.readUnsignedInt(); // language
+     const guid1 = gp.readGUID();
+@@ -137,18 +110,20 @@ class ChatHandler extends EventEmitter {
+     } else {
+         if (!this.playerNames[guid1.low]) {    
+             this.playerNames[guid1.low]= { name: guid1.low };
+-            this.askName(guid1);
++            this.session.game.askName(guid1);
+         }
+     }
+ 
+     var channelName="";
+ 
+-    const len = 0;
+-    const text = "";
+-    const flags = 0;
++    var len = 0;
++    var text = "";
++    var flags = 0;
++    var senderName = "";
++    var recvGuid = "";
+ 
+-    if (type === ChatEnum.CHAT_MSG_CHANNEL)
+-    {
++    switch(type) {
++      case ChatEnum.CHAT_MSG_CHANNEL:
+         // hardcoded channel
+         channelName = gp.readString(5);
+         if (channelName !== ChatEnum.channel)
+@@ -157,18 +132,31 @@ class ChatHandler extends EventEmitter {
+         var _unk=gp.readUnsignedInt();
+         len = gp.length - gp.index - 1; // channel buffer min size
+         text = gp.readString(len);
+-    } else {
+-      const guid2 = gp.readGUID(); // guid2
++      break;
++      case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
++        len = gp.readUnsignedInt();
++        senderName = gp.readString(len);
+ 
+-      if (!this.playerNames[guid2.low]) {
+-          this.playerNames[guid2.low]= { name: guid2.low };
+-          this.askName(guid2);
+-      }
++        recvGuid = gp.readGUID();
+ 
+-      len = gp.readUnsignedInt();
++        if (!this.playerNames[recvGuid.low]) {
++            this.playerNames[recvGuid.low]= { name: recvGuid.low };
++            this.session.game.askName(recvGuid);
++        }
++      break;
++      default:
++        guid2 = gp.readGUID(); // guid2
++
++        if (!this.playerNames[guid2.low]) {
++            this.playerNames[guid2.low]= { name: guid2.low };
++            this.session.game.askName(guid2);
++        }
+ 
+-      text = gp.readString(len);
+-      flags = gp.readUnsignedByte(); // flags
++        len = gp.readUnsignedInt();
++
++        text = gp.readString(len);
++        flags = gp.readUnsignedByte(); // flags
++      break;
+     }
+ 
+     const message = null;
+@@ -178,6 +166,10 @@ class ChatHandler extends EventEmitter {
+             message = new Message("area", text, guid1.low);
+             this.sayMessages.push(message);
+         break;
++        case ChatEnum.CHAT_MSG_SYSTEM:
++            message = new Message("system", text, 0); // hardcoded guid
++            this.sayMessages.push(message);
++        break;
+         case ChatEnum.CHAT_MSG_EMOTE:
+             message = new Message("me", text, guid1.low);
+             this.sayMessages.push(message);
+@@ -194,6 +186,18 @@ class ChatHandler extends EventEmitter {
+             message = new Message("channel", text, guid1.low);
+             this.worldMessages.push(message);
+         break;
++        case ChatEnum.CHAT_MSG_WHISPER:
++            message = new Message("whisper incoming", text, guid1.low, guid2.low);
++            this.sayMessages.push(message);
++        break;
++        case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
++            message = new Message("whisper incoming", text, senderName, recvGuid.low);
++            this.sayMessages.push(message);
++        break;
++        default:
++            message = new Message("info", text, guid1.low);
++            this.logsMessages.push(message);
++        break;
+     }
+ 
+     this.emit('message', message);
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index 90ea04e..06cf7ae 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -8,6 +8,7 @@ import GUID from '../game/guid';
+ import SHA1 from '../crypto/hash/sha1';
+ import Socket from '../net/socket';
+ import ChatEnum from '../game/chat/chatEnum';
++import Player from './player';
+ 
+ class GameHandler extends Socket {
+ 
+@@ -20,6 +21,13 @@ class GameHandler extends Socket {
+     // Holds session
+     this.session = session;
+ 
++    this.session.player = new Player("Player",-1);
++
++    // [guid] = name
++    this.playerNames = [];
++
++    this.playerNames[0] = { name : "SYSTEM" };
++
+     // Listen for incoming data
+     this.on('data:receive', ::this.dataReceived);
+ 
+@@ -28,6 +36,7 @@ class GameHandler extends Socket {
+     this.on('packet:receive:SMSG_AUTH_CHALLENGE', ::this.handleAuthChallenge);
+     this.on('packet:receive:SMSG_AUTH_RESPONSE', ::this.handleAuthResponse);
+     this.on('packet:receive:SMSG_LOGIN_VERIFY_WORLD', ::this.handleWorldLogin);
++    this.on('packet:receive:SMSG_NAME_QUERY_RESPONSE', ::this.handleName);
+   }
+ 
+   // Connects to given host through given realm information
+@@ -58,6 +67,11 @@ class GameHandler extends Socket {
+ 
+   // Attempts to join game with given character
+   join(character) {
++    var name = character.toString();
++
++    this.session.player.name = character.name;
++    this.session.player.guid = character.guid;
++
+     if (character) {
+       console.info('joining game with', character.toString());
+ 
+@@ -121,6 +135,43 @@ class GameHandler extends Socket {
+     }
+   }
+ 
++  handleName(gp) {
++    const unk = gp.readUnsignedByte();
++    const guid = unk > 1 ? gp.readUnsignedInt() : gp.readUnsignedByte(); // strange behaviour 
++    //const name_known = gp.readUnsignedByte();
++    const name = gp.readString();
++
++    
++    // the buffer is empty now o_O
++    /*
++    const realm_name = gp.readUnsignedByte(); // only for crossrealm
++    const race = gp.readUnsignedByte();
++    const gender = gp.readUnsignedByte(); // guid2
++    const playerClass = gp.readUnsignedByte();
++    const declined = gp.readUnsignedByte();
++    */
++
++    this.player.name=name;
++    
++    this.playerNames[guid] = {
++        name : name
++        //race : race,
++        //gender : gender,
++        //playerClass : playerClass
++    };
++    
++    this.emit("message",null); // to refresh
++  }
++  
++  askName(guid) {
++    const app = new GamePacket(GameOpcode.CMSG_NAME_QUERY, 64);
++
++    app.writeGUID(guid);
++
++    this.session.game.send(app);
++    return true;
++  }
++
+   // Pong handler (SMSG_PONG)
+   handlePong(gp) {
+     console.log("pong");
+diff --git a/src/lib/game/player.js b/src/lib/game/player.js
+index 53d3915..d1cec31 100644
+--- a/src/lib/game/player.js
++++ b/src/lib/game/player.js
+@@ -2,10 +2,10 @@ import Unit from './unit';
+ 
+ class Player extends Unit {
+ 
+-  constructor() {
+-    super();
++  constructor(name, guid) {
++    super(guid);
+ 
+-    this.name = 'Player';
++    this.name = name;
+     this.hp = this.hp;
+     this.mp = this.mp;
+ 
+diff --git a/src/lib/game/unit.js b/src/lib/game/unit.js
+index 21b34cc..b0d2bb4 100644
+--- a/src/lib/game/unit.js
++++ b/src/lib/game/unit.js
+@@ -6,9 +6,11 @@ import M2Blueprint from '../pipeline/m2/blueprint';
+ 
+ class Unit extends Entity {
+ 
+-  constructor() {
++  constructor(guid) {
+     super();
+ 
++    this.guid = guid;
++
+     this.name = '<unknown>';
+     this.level = '?';
+     this.target = null;
+diff --git a/src/lib/index.js b/src/lib/index.js
+index 341651d..5332be4 100644
+--- a/src/lib/index.js
++++ b/src/lib/index.js
+@@ -5,7 +5,6 @@ import CharactersHandler from './characters/handler';
+ import ChatHandler from './game/chat/handler';
+ import Config from './config';
+ import GameHandler from './game/handler';
+-import Player from './game/player';
+ import RealmsHandler from './realms/handler';
+ import WorldHandler from './game/world/handler';
+ 
+@@ -20,7 +19,6 @@ class Client extends EventEmitter {
+     this.game = new GameHandler(this);
+     this.characters = new CharactersHandler(this);
+     this.chat = new ChatHandler(this);
+-    this.player = new Player();
+     this.world = new WorldHandler(this);
+   }
+ 
+-- 
+2.43.0
+

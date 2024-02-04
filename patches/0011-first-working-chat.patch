@@ -1,0 +1,99 @@
+From 77de8282cd94d042cf32bfc3ecea6c296015cced Mon Sep 17 00:00:00 2001
+From: Yehonal <yehonal.azeroth@gmail.com>
+Date: Wed, 21 Dec 2016 14:50:30 +0100
+Subject: [PATCH 11/26] first working chat
+
+of course we have to implement a non-static custom channel
+but for test i've hardcoded "world"
+---
+ src/lib/game/chat/chatEnum.js |  1 +
+ src/lib/game/chat/handler.js  | 16 ++++++++--------
+ src/lib/game/handler.js       |  2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/src/lib/game/chat/chatEnum.js b/src/lib/game/chat/chatEnum.js
+index 9937eaf..ef4c4f4 100644
+--- a/src/lib/game/chat/chatEnum.js
++++ b/src/lib/game/chat/chatEnum.js
+@@ -1,5 +1,6 @@
+ 
+ class ChatEnum {
++    static channel = "world"; // hacky workaround
+     static CHAT_MSG_ADDON                  = 0xFFFFFFFF;
+     static CHAT_MSG_SYSTEM                 = 0x00;
+     static CHAT_MSG_SAY                    = 0x01;
+diff --git a/src/lib/game/chat/handler.js b/src/lib/game/chat/handler.js
+index b607202..ca66739 100644
+--- a/src/lib/game/chat/handler.js
++++ b/src/lib/game/chat/handler.js
+@@ -51,7 +51,7 @@ class ChatHandler extends EventEmitter {
+   send(_message,type) {
+     var size=64+_message.length;
+ 
+-    var channel = "world\0";
++    var channel = ChatEnum.channel+"\0";
+ 
+ 
+     if (type==ChatEnum.CHAT_MSG_CHANNEL) {
+@@ -79,11 +79,11 @@ class ChatHandler extends EventEmitter {
+   }
+   
+   handleName(gp) {
+-    //const guid = gp.readUnsignedByte();
++    const unk = gp.readUnsignedByte();
++    const guid = unk > 1 ? gp.readUnsignedInt() : gp.readUnsignedByte(); // strange behaviour 
+     //const name_known = gp.readUnsignedByte();
+-    const unk  = gp.readUnsignedByte();
+-    const guid = gp.readUnsignedByte();
+     const name = gp.readString();
++
+     
+     // the buffer is empty now o_O
+     /*
+@@ -106,6 +106,7 @@ class ChatHandler extends EventEmitter {
+   
+   askName(guid) {
+     const app = new GamePacket(GameOpcode.CMSG_NAME_QUERY, 64);
++
+     app.writeGUID(guid);
+ 
+     this.session.game.send(app);
+@@ -150,11 +151,11 @@ class ChatHandler extends EventEmitter {
+     {
+         // hardcoded channel
+         channelName = gp.readString(5);
+-        if (channelName !== "world")
++        if (channelName !== ChatEnum.channel)
+           return;
+ 
+-        len = gp.length - 26; // channel buffer min size
+-
++        var _unk=gp.readUnsignedInt();
++        len = gp.length - gp.index - 1; // channel buffer min size
+         text = gp.readString(len);
+     } else {
+       const guid2 = gp.readGUID(); // guid2
+@@ -167,7 +168,6 @@ class ChatHandler extends EventEmitter {
+       len = gp.readUnsignedInt();
+ 
+       text = gp.readString(len);
+-
+       flags = gp.readUnsignedByte(); // flags
+     }
+ 
+diff --git a/src/lib/game/handler.js b/src/lib/game/handler.js
+index 45915c9..90ea04e 100644
+--- a/src/lib/game/handler.js
++++ b/src/lib/game/handler.js
+@@ -225,7 +225,7 @@ class GameHandler extends Socket {
+   joinWorldChannel() {
+       console.log("join world");
+ 
+-      var channel="world";
++      var channel=ChatEnum.channel;
+       var pass="";
+ 
+       var size=1 + 16 +  4 + 4 + channel.length + pass.length;
+-- 
+2.43.0
+
