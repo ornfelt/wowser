@@ -40,9 +40,9 @@ class CharactersScreen extends React.Component {
   }
 
   _onCharacterSelect(event) {
-    this.setState({ 
+    this.setState({
       index : event.target.value,
-      character: this.state.characters[event.target.value] 
+      character: this.state.characters[event.target.value]
     });
   }
 
@@ -72,7 +72,7 @@ class CharactersScreen extends React.Component {
           <div className="divider"></div>
 
           <p>
-            At some point this screen will allow managing characters. Soon™
+            At some point this screen will allow managing characters. Soon™ If you want to create a character, please use the official WoW Client
           </p>
 
           <form onSubmit={ this._onSubmit }>

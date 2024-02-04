@@ -181,7 +181,7 @@ class GameHandler extends Socket {
   ping() {
     console.log("ping");
     if (this.pingRecv === false) {
-        location.reload();
+        this.disconnect();
     }
 
     const app = new GamePacket(GameOpcode.CMSG_PING, GamePacket.OPCODE_SIZE_INCOMING + 64);
