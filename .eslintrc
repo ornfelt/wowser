@@ -30,6 +30,11 @@
     "block-scoped-var": "off",
     "comma-spacing": "off",
     "space-in-parens": "off",
+    "semi": "off",
+    "indent": "off",
+    "key-spacing": "off",
+    "curly": "off",
+    "no-trailing-spaces": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],
@@ -40,6 +45,7 @@
     "space-before-function-paren": [0],
     "react/jsx-indent-props": [0],
     "react/jsx-closing-bracket-location": [0],
+
     // fuck it
     "*": "off"
   }
