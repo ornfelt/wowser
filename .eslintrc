@@ -42,6 +42,7 @@
     "brace-style": "off",
     "no-const-assign": "off",
     "no-redeclare": "off",
+    "no-unused-expressions": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

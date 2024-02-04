@@ -160,6 +160,7 @@ class ChatPanel extends React.Component {
                 </TabList>
                 <TabPanel>
                       <ul id="sayMessages" className="chat-box">
+                        <li>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</li>
                         { this.state.sayMessages.map((message, index) => {
                           const className = classes('message', message.kind);
                           return (
@@ -180,6 +181,7 @@ class ChatPanel extends React.Component {
                 </TabPanel>
                 <TabPanel>
                       <ul id="guildMessages" className="chat-box">
+                        <li>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</li>
                         { this.state.guildMessages.map((message, index) => {
                           const className = classes('message', message.kind);
                           return (
@@ -201,6 +203,7 @@ class ChatPanel extends React.Component {
                 </TabPanel>
                 <TabPanel>
                       <ul id="worldMessages" className="chat-box">
+                        <li>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</li>
                         { this.state.worldMessages.map((message, index) => {
                           const className = classes('message', message.kind);
                           return (
@@ -222,6 +225,7 @@ class ChatPanel extends React.Component {
                 </TabPanel>
                 <TabPanel>
                       <ul id="logsMessages" className="chat-box">
+                        <li>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</li>
                         { this.state.logsMessages.map((message, index) => {
                           const className = classes('message', message.kind);
                           return (

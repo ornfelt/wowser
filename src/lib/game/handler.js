@@ -159,7 +159,7 @@ class GameHandler extends Socket {
         //playerClass : playerClass
     };
 
-    this.emit("message",null); // to refresh
+    this.session.chat.emit("message",null); // to refresh
   }
 
   askName(guid) {
