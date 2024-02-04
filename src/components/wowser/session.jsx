@@ -5,7 +5,7 @@ class Session extends Client {
   constructor() {
     super();
 
-    this._screen = 'auth';
+    this._screen = 'game';
   }
 
   get screen() {

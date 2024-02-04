@@ -2,21 +2,13 @@ import React from 'react';
 
 import './index.styl';
 
-import AuthScreen from '../auth';
-import CharactersScreen from '../characters';
 import GameScreen from '../game';
-import RealmsScreen from '../realms';
-import Kit from '../kit';
 import session from './session';
 
 class Wowser extends React.Component {
 
   static SCREENS = [
-    AuthScreen,
-    RealmsScreen,
-    CharactersScreen,
-    GameScreen,
-    Kit
+    GameScreen
   ];
 
   constructor() {
