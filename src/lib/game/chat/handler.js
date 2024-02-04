@@ -13,32 +13,37 @@ class ChatHandler extends EventEmitter {
 
     // Holds session
     this.session = session;
+    this.playerNames = this.session.game.playerNames;
 
-    // [guid] = name
-    this.playerNames = [];
-
-    this.playerNames[0] = { name : "SYSTEM" };
+    var welcome = new Message('system', 'Welcome to Drassil WoW Web Client! [ Chat developed by ornfelt ]',0);
 
     // Holds messages
     this.sayMessages = [
-      new Message('system', 'This is a very alpha-ish build.',0),
-
-      new Message('info', 'This is an info message',0),
-      new Message('error', 'This is an error message',0),
-      new Message('area', 'Player: This is a message emitted nearby',0),
-      new Message('channel', '[Trade]: This is a channel message',0),
-      new Message('whisper outgoing', 'To Someone: This is an outgoing whisper',0),
-      new Message('whisper incoming', 'Someone: This is an incoming whisper',0),
-      new Message('guild', '[Guild] Someone: This is a guild message',0)
+        welcome,
+        new Message('info', 'This is an info message',0),
+        new Message('error', 'This is an error message',0),
+        new Message('area', 'Player: This is a message emitted nearby',0),
+        new Message('whisper outgoing', 'To Someone: This is an outgoing whisper',0),
+        new Message('whisper incoming', 'Someone: This is an incoming whisper',0)
     ];
 
-    this.guildMessages = [];
-    this.worldMessages = []
+    this.guildMessages = [
+        welcome,
+        new Message('guild', '[Guild] Someone: This is your guild channel (if you have a guild)',0)
+    ];
+    this.worldMessages = [
+        welcome,
+        new Message('channel', '[World]: This is the official world channel',0),
+    ]
+
+    this.logsMessages = [
+        welcome,
+        new Message('info', '[Logs]: This is a log window',0),
+    ]
 
     // Listen for messages
     this.session.game.on('packet:receive:SMSG_GM_MESSAGECHAT', ::this.handleGmMessage);
     this.session.game.on('packet:receive:SMSG_MESSAGE_CHAT', ::this.handleMessage);
-    this.session.game.on('packet:receive:SMSG_NAME_QUERY_RESPONSE', ::this.handleName);
   }
 
   // Creates chat message
@@ -76,47 +81,14 @@ class ChatHandler extends EventEmitter {
     return true;
   }
 
-  handleName(gp) {
-    const unk = gp.readUnsignedByte();
-    const guid = unk > 1 ? gp.readUnsignedInt() : gp.readUnsignedByte(); // strange behaviour
-    //const name_known = gp.readUnsignedByte();
-    const name = gp.readString();
-
-
-    // the buffer is empty now o_O
-    /*
-    const realm_name = gp.readUnsignedByte(); // only for crossrealm
-    const race = gp.readUnsignedByte();
-    const gender = gp.readUnsignedByte(); // guid2
-    const playerClass = gp.readUnsignedByte();
-    const declined = gp.readUnsignedByte();
-    */
-
-    this.playerNames[guid] = {
-        name : name
-        //race : race,
-        //gender : gender,
-        //playerClass : playerClass
-    };
-
-    this.emit("message",null); // to refresh
-  }
-
-  askName(guid) {
-    const app = new GamePacket(GameOpcode.CMSG_NAME_QUERY, 64);
-
-    app.writeGUID(guid);
-
-    this.session.game.send(app);
-    return true;
-  }
-
   handleGmMessage(gp) {
     this.handleMessage(gp,true);
   }
 
   // Message handler (SMSG_MESSAGE_CHAT)
   handleMessage(gp,isGm) {
+    var guid2 = 0;
+
     const type = gp.readUnsignedByte(); // type
     const lang = gp.readUnsignedInt(); // language
     const guid1 = gp.readGUID();
@@ -135,18 +107,20 @@ class ChatHandler extends EventEmitter {
     } else {
         if (!this.playerNames[guid1.low]) {
             this.playerNames[guid1.low]= { name: guid1.low };
-            this.askName(guid1);
+            this.session.game.askName(guid1);
         }
     }
 
     var channelName="";
 
-    const len = 0;
-    const text = "";
-    const flags = 0;
+    var len = 0;
+    var text = "";
+    var flags = 0;
+    var senderName = "";
+    var recvGuid = "";
 
-    if (type === ChatEnum.CHAT_MSG_CHANNEL)
-    {
+    switch(type) {
+      case ChatEnum.CHAT_MSG_CHANNEL:
         // hardcoded channel
         channelName = gp.readString(5);
         if (channelName !== ChatEnum.channel)
@@ -156,18 +130,32 @@ class ChatHandler extends EventEmitter {
         len = gp.length - gp.index - 1; // channel buffer min size
 
         text = gp.readString(len);
-    } else {
-      const guid2 = gp.readGUID(); // guid2
+        break;
 
-      if (!this.playerNames[guid2.low]) {
-          this.playerNames[guid2.low]= { name: guid2.low };
-          this.askName(guid2);
-      }
+      case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
+        len = gp.readUnsignedInt();
+        senderName = gp.readString(len);
 
-      len = gp.readUnsignedInt();
+        recvGuid = gp.readGUID();
 
-      text = gp.readString(len);
-      flags = gp.readUnsignedByte(); // flags
+        if (!this.playerNames[recvGuid.low]) {
+            this.playerNames[recvGuid.low]= { name: recvGuid.low };
+            this.session.game.askName(recvGuid);
+        }
+      break;
+      default:
+        guid2 = gp.readGUID(); // guid2
+
+        if (!this.playerNames[guid2.low]) {
+            this.playerNames[guid2.low]= { name: guid2.low };
+            this.session.game.askName(guid2);
+        }
+
+        len = gp.readUnsignedInt();
+
+        text = gp.readString(len);
+        flags = gp.readUnsignedByte(); // flags
+      break;
     }
 
     const message = null;
@@ -175,6 +163,10 @@ class ChatHandler extends EventEmitter {
     switch(type) {
         case ChatEnum.CHAT_MSG_SAY:
             message = new Message("area", text, guid1.low);
+            this.sayMessages.push(message);
+        break;
+        case ChatEnum.CHAT_MSG_SYSTEM:
+            message = new Message("system", text, 0); // hardcoded guid
             this.sayMessages.push(message);
         break;
         case ChatEnum.CHAT_MSG_EMOTE:
@@ -192,6 +184,18 @@ class ChatHandler extends EventEmitter {
         case ChatEnum.CHAT_MSG_CHANNEL:
             message = new Message("channel", text, guid1.low);
             this.worldMessages.push(message);
+        break;
+        case ChatEnum.CHAT_MSG_WHISPER:
+            message = new Message("whisper incoming", text, guid1.low, guid2.low);
+            this.sayMessages.push(message);
+        break;
+        case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
+            message = new Message("whisper incoming", text, senderName, recvGuid.low);
+            this.sayMessages.push(message);
+        break;
+        default:
+            message = new Message("info", text, guid1.low);
+            this.logsMessages.push(message);
         break;
     }
 
