@@ -262,7 +262,7 @@ class ChatPanel extends React.Component {
                       </ul>
 
                       <form onSubmit={ this._onSubmitWorld }>
-                        <input type="text" onChange={ this._onChangeWorld }
+                        <input type="text" maxLength={254} onChange={ this._onChangeWorld }
                                name="text" value={ this.state.worldText } />
                       </form>
                 </TabPanel>
@@ -284,7 +284,7 @@ class ChatPanel extends React.Component {
                       </ul>
 
                       <form onSubmit={ this._onSubmitGuild }>
-                        <input type="text" onChange={ this._onChangeGuild }
+                        <input type="text" maxLength={254} onChange={ this._onChangeGuild }
                                name="text" value={ this.state.guildText } />
                       </form>
                 </TabPanel>
@@ -309,12 +309,12 @@ class ChatPanel extends React.Component {
                         <div className="wisp-form">
                             <div className="wisp-to">
                               <span>
-                                <input className="wisp-dest" type="text" onChange={ this._onChangeWispDest } name="name" value={ this.state.wispDest } placeholder="To:" />
+                                <input className="wisp-dest" maxLength={12} type="text" onChange={ this._onChangeWispDest } name="name" value={ this.state.wispDest } placeholder="To:" />
                               </span>
                             </div>
                             <div className="wisp-input">
                               <input className="wisp-input" type="text" onChange={ this._onChangeWisp }
-                                name="text" value={ this.state.wispText } />
+                                name="text"  maxLength={254} value={ this.state.wispText } />
                             </div>
                             <div style={{display: 'table-cell'}}>
                               <button className="send" type='submit'>></button>
@@ -339,7 +339,7 @@ class ChatPanel extends React.Component {
                       </ul>
 
                       <form onSubmit={ this._onSubmitSay }>
-                        <input type="text" onChange={ this._onChangeSay }
+                        <input type="text" maxLength={254} onChange={ this._onChangeSay }
                                name="text" value={ this.state.sayText } />
                       </form>
                 </TabPanel>
