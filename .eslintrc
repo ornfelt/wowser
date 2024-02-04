@@ -49,6 +49,7 @@
     "object-curly-spacing": "off",
     "radix": "off",
     "jsx-quotes": "off",
+    "quote-props": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],
