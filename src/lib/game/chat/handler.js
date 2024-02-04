@@ -145,7 +145,8 @@ class ChatHandler extends EventEmitter {
           return;
 
         var _unk=gp.readUnsignedInt();
-        text = gp.readCString();
+        len = gp.length - gp.index - 2; // channel buffer min size
+        text = gp.readString(len);
         break;
 
       case ChatEnum.CHAT_MSG_WHISPER_FOREIGN:
