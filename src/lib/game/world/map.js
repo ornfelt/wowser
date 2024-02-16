@@ -8,6 +8,8 @@ import DoodadManager from './doodad-manager';
 import WMOManager from './wmo-manager';
 import TerrainManager from './terrain-manager';
 
+import MapName from '../map_name';
+
 class WorldMap extends THREE.Group {
 
   static ZEROPOINT = ADT.SIZE * 32;
@@ -134,12 +136,17 @@ class WorldMap extends THREE.Group {
   static load(id) {
     return DBC.load('Map', id).then((data) => {
       const { internalName: name } = data;
+      const mapName = MapName.getMapName();
+      console.log(`Loading (wdt) Map: ${mapName} (${id})`);
 
-      // Construct the filename and print it
-      let filename = 'World\\Maps\\' + name + '\\' + name + '.wdt';
-      console.log("Loading (wdt) filename:", filename);
-      filename = 'World\\Maps\\Azeroth\\Azeroth.wdt';
-      console.log("Loading (wdt) filename:", filename);
+      //let filename = 'World\\Maps\\' + name + '\\' + name + '.wdt';
+      //console.log("2Loading filename:", filename); // Informative print before changing
+      //filename = 'World\\Maps\\Azeroth\\Azeroth.wdt';
+      //filename = 'World\\Maps\\Kalimdor\\Kalimdor.wdt';
+      //filename = 'World\\Maps\\Northrend\\Northrend.wdt';
+      //console.log("Loading (wdt) filename:", filename); // Print final filename
+
+      let filename = `World\\Maps\\${mapName}\\${mapName}.wdt`;
 
       return WDT.load(filename).then((wdt) => {
         return new this(data, wdt);

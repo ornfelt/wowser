@@ -1,4 +1,5 @@
 import WorkerPool from '../worker/pool';
+import MapName from '../../game/map_name';
 
 class ADT {
 
@@ -42,11 +43,16 @@ class ADT {
   //}
 
   static loadTile(map, tileX, tileY, wdtFlags) {
-    // Construct the filename using + for concatenation and print it
-    let filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
-    console.log("Loading (adt) tile filename:", filename);
-    filename = 'World\\Maps\\' + "Azeroth" + '\\' + "Azeroth" + '_' + tileY + '_' + tileX + '.adt';
-    console.log("Loading (adt) tile filename:", filename);
+    //let filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
+    const mapName = MapName.getMapName();
+
+    //console.log("Loading (adt) tile filename:", filename); // Informative print before changing
+    //filename = 'World\\Maps\\' + "Azeroth" + '\\' + "Azeroth" + '_' + tileY + '_' + tileX + '.adt';
+    //filename = 'World\\Maps\\' + "Kalimdor" + '\\' + "Kalimdor" + '_' + tileY + '_' + tileX + '.adt';
+    //filename = 'World\\Maps\\' + "Northrend" + '\\' + "Northrend" + '_' + tileY + '_' + tileX + '.adt';
+    //console.log("Loading (adt) tile filename:", filename); // Print final filename
+
+    let filename = `World\\Maps\\${mapName}\\${mapName}_${tileY}_${tileX}.adt`;
 
     return ADT.load(filename, wdtFlags);
   }
