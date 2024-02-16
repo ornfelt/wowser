@@ -137,9 +137,9 @@ class WorldMap extends THREE.Group {
 
       // Construct the filename and print it
       let filename = 'World\\Maps\\' + name + '\\' + name + '.wdt';
-      console.log("2Loading filename:", filename);
+      console.log("Loading (wdt) filename:", filename);
       filename = 'World\\Maps\\Azeroth\\Azeroth.wdt';
-      console.log("2Loading filename:", filename);
+      console.log("Loading (wdt) filename:", filename);
 
       return WDT.load(filename).then((wdt) => {
         return new this(data, wdt);

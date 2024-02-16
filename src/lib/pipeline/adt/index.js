@@ -44,9 +44,9 @@ class ADT {
   static loadTile(map, tileX, tileY, wdtFlags) {
     // Construct the filename using + for concatenation and print it
     let filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
-    console.log("1Loading tile filename:", filename);
+    console.log("Loading (adt) tile filename:", filename);
     filename = 'World\\Maps\\' + "Azeroth" + '\\' + "Azeroth" + '_' + tileY + '_' + tileX + '.adt';
-    console.log("1Loading tile filename:", filename);
+    console.log("Loading (adt) tile filename:", filename);
 
     return ADT.load(filename, wdtFlags);
   }
