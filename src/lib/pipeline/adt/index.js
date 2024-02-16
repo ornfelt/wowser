@@ -43,16 +43,18 @@ class ADT {
   //}
 
   static loadTile(map, tileX, tileY, wdtFlags) {
-    //let filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
+    let filename;
     const mapName = MapName.getMapName();
 
+    // Old
+    //filename = 'World\\Maps\\' + map + '\\' + map + '_' + tileY + '_' + tileX + '.adt';
     //console.log("Loading (adt) tile filename:", filename); // Informative print before changing
     //filename = 'World\\Maps\\' + "Azeroth" + '\\' + "Azeroth" + '_' + tileY + '_' + tileX + '.adt';
     //filename = 'World\\Maps\\' + "Kalimdor" + '\\' + "Kalimdor" + '_' + tileY + '_' + tileX + '.adt';
     //filename = 'World\\Maps\\' + "Northrend" + '\\' + "Northrend" + '_' + tileY + '_' + tileX + '.adt';
     //console.log("Loading (adt) tile filename:", filename); // Print final filename
 
-    let filename = `World\\Maps\\${mapName}\\${mapName}_${tileY}_${tileX}.adt`;
+    filename = `World\\Maps\\${mapName}\\${mapName}_${tileY}_${tileX}.adt`;
 
     return ADT.load(filename, wdtFlags);
   }

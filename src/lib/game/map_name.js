@@ -3,11 +3,14 @@ export default class MapName {
 
   // Predefined map
   static mapIdToName = {
-    0: "Azeroth",
-    1: "Kalimdor",
-    30: "PVPZone01",
-    530: "Expansion01",
-    571: "Northrend",
+    0: "Azeroth", // Eastern Kingdoms
+    1: "Kalimdor", // Kalimdor
+    29: "pvpzone04", // Arathi basin
+    30: "pvpzone01", // Alterac valley
+    489: "pvpzone03", // WSG
+    530: "expansion01", // Outland
+    566: "netherstormbg", // Eye of the Storm
+    571: "Northrend", // Northrend
   };
 
   static getMapName(id = MapName.mapId) {

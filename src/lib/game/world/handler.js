@@ -50,7 +50,7 @@ class WorldHandler extends EventEmitter {
     //this.player.worldport(1, 7827, -2425, 489);
 
     // Un'Goro Crater (Kalimdor)
-    this.player.worldport(1, -7183, -1394, -183);
+    //this.player.worldport(1, -7183, -1394, -183);
 
     // Everlook (Kalimdor)
     //this.player.worldport(1, 6721.44, -4659.09, 721.893);
@@ -66,6 +66,15 @@ class WorldHandler extends EventEmitter {
 
     // Auberdine (Kalimdor)
     //this.player.worldport(1, 6355.151, 508.831, 15.859);
+
+    // Arathi basin (PVPZone04)
+    //this.player.worldport(29, 766.151, 834.831, -37.3);
+
+    // WSG (pvpzone03)
+    this.player.worldport(489, 1123.4, 1466.4, 338.4);
+
+    // Eye of the Storm (netherstormbg)
+    //this.player.worldport(566, 2019.9, 1541.6, 1206.1);
 
     // Alterac Valley (PVPZone01)
     //this.player.worldport(30, 430.151, -80.831, 10.3);

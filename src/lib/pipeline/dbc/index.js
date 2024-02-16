@@ -29,6 +29,11 @@ class DBC {
 
     if (id !== undefined) {
       return this.cache[name].then(function(dbc) {
+        // idk why this is needed really
+        const specialMapIds = [530, 30, 29, 566, 489];
+        if (specialMapIds.includes(id)) {
+          id = 0;
+        }
         return dbc[id];
       });
     }
