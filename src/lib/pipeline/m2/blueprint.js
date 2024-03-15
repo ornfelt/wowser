@@ -13,7 +13,10 @@ class M2Blueprint {
   static UNLOAD_INTERVAL = 15000;
 
   static load(rawPath) {
+    // HEHE
     const path = rawPath.replace(/\.md(x|l)/i, '.m2').toUpperCase();
+    //const path = "spells\\blizzard_impact_base.m2";
+    //console.log("M2 path: " + path);
 
     // Prevent unintended unloading.
     if (this.pendingUnload.has(path)) {
