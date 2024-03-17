@@ -1,7 +1,5 @@
 /coverage/
-/lib/
 /node_modules/
 /public/scripts/
 /public/styles/
 /public/templates/
-/spec/

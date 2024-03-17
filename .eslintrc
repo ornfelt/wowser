@@ -79,6 +79,11 @@
     "func-names": "off",
     "no-console": "off",
     "no-constant-condition": "off",
+    "import/no-extraneous-dependencies": "off",
+    "keyword-spacing": "off",
+    "no-dupe-class-members": "off",
+    "no-multiple-empty-lines": "off",
+    "no-unneeded-ternary": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

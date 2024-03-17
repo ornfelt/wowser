@@ -46,14 +46,13 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.jsx?$/, // Rule for .js and .jsx files
+        test: /\.jsx?$/,
         exclude: /node_modules|blizzardry/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env', '@babel/preset-react'], // Specifying Babel presets
+            presets: ['@babel/preset-env', '@babel/preset-react'],
             plugins: [
-              // Add any Babel plugins here.
             ]
           }
         }
@@ -70,7 +69,7 @@ module.exports = {
       exclude: ['node_modules', 'blizzardry'],
     }),
     new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'], // Add this line
+      Buffer: ['buffer', 'Buffer'],
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser', // Polyfill for process
