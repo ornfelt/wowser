@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import classes from 'classnames';
 
 import './index.styl';
@@ -6,9 +7,12 @@ import './index.styl';
 class Portrait extends React.Component {
 
   static propTypes = {
-    self: React.PropTypes.bool,
-    unit: React.PropTypes.object.isRequired,
-    target: React.PropTypes.bool
+    //self: React.PropTypes.bool,
+    //unit: React.PropTypes.object.isRequired,
+    //target: React.PropTypes.bool
+    self: PropTypes.bool,
+    unit: PropTypes.object.isRequired,
+    target: PropTypes.bool
   };
 
   render() {

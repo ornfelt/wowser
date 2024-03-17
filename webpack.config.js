@@ -1,48 +1,62 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
+  mode: 'development', // Use 'production' for production builds
+  stats: {
+    children: true, // Provides detailed information about child compilations
+  },
   context: path.join(__dirname, 'src'),
   entry: './bootstrapper',
   output: {
     path: path.join(__dirname, 'public'),
-    filename: 'wowser-[hash].js'
+    filename: 'wowser-[contenthash].js'
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
-  },
-  resolveLoader: {
-    root: path.join(__dirname, 'node_modules')
+    extensions: ['.js', '.jsx'],
+    modules: [path.join(__dirname, 'node_modules')],
+    fallback: { "stream": require.resolve("stream-browserify"), "buffer": require.resolve("buffer/"), "process": require.resolve("process/browser") }
   },
   module: {
-    loaders: [
+    rules: [
       {
-        test: /\.json$/,
-        loader: 'json-loader'
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' },
       },
       {
         test: /\.(png|jpg)$/,
-        loader: 'url-loader?limit=100000'
+        type: 'asset/resource'
       },
       {
         test: /\.styl$/,
-        loader: 'style-loader!css-loader!stylus-loader?resolve url',
-        exclude: /node_modules/
+        use: ['style-loader', 'css-loader', 'stylus-loader'],
+        //exclude: /node_modules/
       },
       {
         test: /\.(frag|vert|glsl)$/,
-        loader: 'raw-loader!glslify-loader?transform[]=glslify-import',
+        use: [
+          'raw-loader',
+          {
+            loader: 'glslify-loader',
+            options: { transform: ['glslify-import'] }
+          }
+        ],
         exclude: /node_modules/
       },
       {
-        test: /\.jsx?$/,
-        loader: 'babel-loader',
-        exclude: /node_modules|blizzardry/
-      },
-      {
-        test: /\.jsx?$/,
-        loader: 'eslint-loader',
-        exclude: /node_modules|blizzardry/
+        test: /\.jsx?$/, // Rule for .js and .jsx files
+        exclude: /node_modules|blizzardry/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react'], // Specifying Babel presets
+            plugins: [
+              // Add any Babel plugins here.
+            ]
+          }
+        }
       }
     ]
   },
@@ -51,10 +65,21 @@ module.exports = {
       hash: true,
       inject: true,
       template: 'index.html'
-    })
+    }),
+    new ESLintPlugin({
+      exclude: ['node_modules', 'blizzardry'],
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'], // Add this line
+    }),
+    new webpack.ProvidePlugin({
+      process: 'process/browser', // Polyfill for process
+    }),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'public'),
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     proxy: {
       '/pipeline/*': {
         target: 'http://localhost:3000',

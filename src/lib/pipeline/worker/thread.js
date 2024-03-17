@@ -1,4 +1,5 @@
-import Worker from 'worker!./';
+//import Worker from 'worker!./';
+import Worker from 'worker-loader!./index';
 
 class Thread {
 

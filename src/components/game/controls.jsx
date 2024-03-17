@@ -1,12 +1,15 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import THREE from 'three';
 import key from 'keymaster';
 
 class Controls extends React.Component {
 
   static propTypes = {
-    camera: React.PropTypes.object.isRequired,
-    for: React.PropTypes.object.isRequired
+    //camera: React.PropTypes.object.isRequired,
+    //for: React.PropTypes.object.isRequired
+    camera: PropTypes.object.isRequired,
+    for: PropTypes.object.isRequired
   };
 
   constructor(props) {

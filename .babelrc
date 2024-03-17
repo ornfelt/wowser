@@ -1,14 +1,32 @@
+// Old:
+//{
+//  "plugins": [
+//    "transform-class-properties",
+//    "transform-export-extensions",
+//    "transform-function-bind",
+//    "transform-es2015-block-scoping",
+//    "add-module-exports",
+//    "transform-es2015-modules-commonjs"
+//  ],
+//
+//  "presets": [
+//    "react"
+//  ]
+//}
+
 {
   "plugins": [
-    "transform-class-properties",
-    "transform-export-extensions",
-    "transform-function-bind",
-    "transform-es2015-block-scoping",
-    "add-module-exports",
-    "transform-es2015-modules-commonjs"
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-export-default-from",
+    "@babel/plugin-proposal-function-bind",
+    // The "transform-es2015-block-scoping" is included in @babel/preset-env
+    // The "add-module-exports" and "transform-es2015-modules-commonjs" are
+    // part of @babel/plugin-transform-modules-commonjs, but often you don't
+    // need them when using @babel/preset-env unless you're targeting CommonJS specifically.
+    "@babel/plugin-transform-modules-commonjs"
   ],
-
   "presets": [
-    "react"
+    "@babel/preset-env",
+    "@babel/preset-react"
   ]
 }

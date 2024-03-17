@@ -1,12 +1,15 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import './index.styl';
 
 class Stats extends React.Component {
 
   static propTypes = {
-    renderer: React.PropTypes.object,
-    map: React.PropTypes.object
+    //renderer: React.PropTypes.object,
+    //map: React.PropTypes.object
+    renderer: PropTypes.object,
+    map: PropTypes.object
   };
 
   mapStats() {

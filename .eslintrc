@@ -1,5 +1,12 @@
 {
-  "parser": "babel-eslint",
+  //"parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "extends": "@timkurvers/eslint-config/react",
   "rules": {
     // Allow vertically aligning values
@@ -38,6 +45,40 @@
     "no-trailing-spaces": "off",
     "prefer-const": "off",
     "new-cap": "off",
+
+
+    "no-underscore-dangle": "off",
+    "no-bitwise": "off",
+    "no-plusplus": "off",
+    "class-methods-use-this": "off",
+    "max-classes-per-file": "off",
+    "import/no-useless-path-segments": "off",
+    "prefer-destructuring": "off",
+    "no-tabs": "off",
+    "no-self-assign": "off",
+    "lines-between-class-members": "off",
+    "no-restricted-syntax": "off",
+    "no-continue": "off",
+    "no-mixed-operators": "off",
+    "function-paren-newline": "off",
+    "function-call-argument-newline": "off",
+    "import/no-named-as-default": "off",
+    "no-multi-assign": "off",
+    "no-undef": "off",
+    "getter-return": "off",
+    "arrow-parens": "off",
+    "prefer-spread": "off",
+    "no-useless-return": "off",
+    "operator-linebreak": "off",
+    "no-empty-function": "off",
+    "no-prototype-builtins": "off",
+    "import/no-webpack-loader-syntax": "off",
+    "import/no-unresolved": "off",
+    "no-restricted-globals": "off",
+    "no-buffer-constructor": "off",
+    "func-names": "off",
+    "no-console": "off",
+    "no-constant-condition": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],
