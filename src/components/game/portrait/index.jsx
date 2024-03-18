@@ -21,8 +21,11 @@ class Portrait extends React.Component {
       self: this.props.self,
       target: this.props.target
     });
+      // use <div instead of <portrait
+      //<portrait className={ className }>
+      //</portrait>
     return (
-      <portrait className={ className }>
+      <div className={ className }>
         <div className="icon portrait"></div>
 
         <header className="name">{ unit.name }</header>
@@ -32,7 +35,7 @@ class Portrait extends React.Component {
 
         <div className="health">{ unit.hp } / { unit.maxHp }</div>
         <div className="mana">{ unit.mp } / { unit.maxMp }</div>
-      </portrait>
+      </div>
     );
   }
 

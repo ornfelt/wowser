@@ -84,6 +84,8 @@
     "no-dupe-class-members": "off",
     "no-multiple-empty-lines": "off",
     "no-unneeded-ternary": "off",
+    "linebreak-style": "off",
+    "import/newline-after-import": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

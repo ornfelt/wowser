@@ -78,7 +78,7 @@ class Stats extends React.Component {
 
     const { memory, programs, render } = renderer.info;
     return (
-      <stats className="stats frame thin">
+      <div className="stats frame thin">
         <h2>Memory</h2>
         <div className="divider"></div>
         <p>
@@ -109,7 +109,7 @@ class Stats extends React.Component {
         </p>
 
         { map && this.mapStats() }
-      </stats>
+      </div>
     );
   }
 

@@ -1,5 +1,9 @@
 import Promise from 'bluebird';
 
+Promise.config({
+  warnings: false
+});
+
 class Task {
 
   constructor(...args) {

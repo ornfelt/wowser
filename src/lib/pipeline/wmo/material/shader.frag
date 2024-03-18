@@ -32,7 +32,8 @@ vec3 createGlobalLight(vec3 lightDirection, vec3 lightNormal, vec3 diffuseLight,
   vec3 directedDiffuseLight = diffuseLight.rgb * light;
 
   directedDiffuseLight.rgb += ambientLight.rgb;
-  directedDiffuseLight = saturate(directedDiffuseLight);
+  //directedDiffuseLight = saturate(directedDiffuseLight);
+  directedDiffuseLight = clamp(directedDiffuseLight, 0.0, 1.0);
 
   return directedDiffuseLight;
 }
