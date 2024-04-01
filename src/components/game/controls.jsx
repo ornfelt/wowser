@@ -46,12 +46,14 @@ class Controls extends React.Component {
 
     // Vertical orbit limits
     this.minPhi = 0;
-    this.maxPhi = Math.PI * 0.45;
+    //this.maxPhi = Math.PI * 0.45;
+    this.maxPhi = Math.PI * 0.9;
 
     this.quat = new THREE.Quaternion().setFromUnitVectors(
       this.camera.up, new THREE.Vector3(0, 1, 0)
     );
     this.quatInverse = this.quat.clone().inverse();
+    //this.quatInverse = this.quat.clone().invert();
 
     this.EPS = 0.000001;
 

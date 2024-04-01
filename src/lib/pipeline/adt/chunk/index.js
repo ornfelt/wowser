@@ -88,6 +88,11 @@ class Chunk extends THREE.Mesh {
     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geometry.addAttribute('uvAlpha', new THREE.BufferAttribute(uvsAlpha, 2));
 
+    //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    //geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    //geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    //geometry.setAttribute('uvAlpha', new THREE.BufferAttribute(uvsAlpha, 2));
+
     this.material = new Material(data, textureNames);
   }
 

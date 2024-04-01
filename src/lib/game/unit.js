@@ -83,6 +83,7 @@ class Unit extends Entity {
     // TODO: Properly manage unit animations
     if (m2.animated && m2.animations.length > 0) {
       m2.animations.playAnimation(0);
+      //m2.animations.playAnimation(11);
       m2.animations.playAllSequences();
     }
 

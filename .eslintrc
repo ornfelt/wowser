@@ -86,6 +86,7 @@
     "no-unneeded-ternary": "off",
     "linebreak-style": "off",
     "import/newline-after-import": "off",
+    "nonblock-statement-body-position": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

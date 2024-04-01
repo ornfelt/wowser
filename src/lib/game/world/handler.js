@@ -43,11 +43,11 @@ class WorldHandler extends EventEmitter {
     //this.player.worldport(1, 6355.151, 508.831, 15.859); // Auberdine (Kalimdor)
     //this.player.worldport(530, -4013, -11894, -2); // The Exodar (Expansion 01)
     //this.player.worldport(530, -743.149, 8385.114, 33.435); // Nagrand (Expansion 01)
-	//this.player.worldport(530, -241.43, 4571.33, 24.15); // Hellfire (Expansion 01)
+	  //this.player.worldport(530, -241.43, 4571.33, 24.15); // Hellfire (Expansion 01)
     //this.player.worldport(530, 9152.441, -7442.229, 68.144); // Eversong Woods (Expansion 01)
     //this.player.worldport(571, 1031, -5192, 180); // Daggercap Bay (Northrend)
     //this.player.worldport(571, 5797, 629, 647); // Dalaran (Northrend)
-	
+
 	//this.player.worldport(30, 430.151, -80.831, 10.3); // Alterac Valley (PVPZone01)
 	//this.player.worldport(33, -227.43, 2112.01, 76.88); // Shadowfang keep (shadowfang)
 	//this.player.worldport(36, -39.96, -733.50, 9.88); // Deadmines (deadminesinstance)
@@ -95,7 +95,7 @@ class WorldHandler extends EventEmitter {
 	//this.player.worldport(658, 538.0, 165.5, 590.2); // Pit of Saron (quarryoftears)
 	//this.player.worldport(723, -8878.69, 582.45, 92.99); // Stormwind (stormwind)
 	//this.player.worldport(724, 3106.0, 418.5, 156.2); // The Ruby Sanctum (chamberofaspectsred)
-	
+
 	// Not working
 	//this.player.worldport(47, 1943.79, 1548.74, 82.35); // Razorfen Kraul (razorfenkraulinstance)
 	//this.player.worldport(169, 1326.5, 1496.0, 87.7); // Emerald Dream (emeralddream)

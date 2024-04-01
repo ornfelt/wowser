@@ -78,7 +78,11 @@ class M2 extends THREE.Group {
     }
 
     this.createMesh(this.geometry, this.skeleton, this.rootBones);
+    //try {
     this.createSubmeshes(data, skinData);
+    //} catch(e) {
+    //    console.log(e)
+    //}
   }
 
   createSkeleton(boneDefs) {
@@ -241,11 +245,50 @@ class M2 extends THREE.Group {
     this.geometry = geometry;
   }
 
+  //createGeometry(vertices) {
+  //  const geometry = new THREE.BufferGeometry();
+
+  //  const positions = new Float32Array(vertices.length * 3);
+  //  const skinIndices = new Float32Array(vertices.length * 4);
+  //  const skinWeights = new Float32Array(vertices.length * 4);
+
+  //  vertices.forEach((vertex, index) => {
+  //    // Fill positions (mirrored over X and Y axes and rotated)
+  //    positions[index * 3 + 0] = vertex.position[0];
+  //    positions[index * 3 + 1] = vertex.position[2]; // Swap Y and Z
+  //    positions[index * 3 + 2] = -vertex.position[1];
+
+  //    // Fill skinIndices
+  //    skinIndices.set(vertex.boneIndices, index * 4);
+
+  //    // Fill skinWeights
+  //    skinWeights.set(vertex.boneWeights, index * 4);
+  //  });
+
+  //  // Set geometry attributes
+  //  // Use addAttribute and applyMatrix below  for three version < 100 ish
+  //  geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+  //  geometry.addAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
+  //  geometry.addAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
+  //  //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  //  //geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
+  //  //geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
+
+  //  // Apply transformations after filling in the positions
+  //  const matrix = new THREE.Matrix4().makeScale(-1, -1, 1); // Mirror over X and Y
+  //  geometry.applyMatrix(matrix);
+  //  //geometry.applyMatrix4(matrix);
+  //  geometry.rotateX(-Math.PI / 2); // Additional rotation
+
+  //  this.geometry = geometry;
+  //}
+
   createMesh(geometry, skeleton, rootBones) {
     let mesh;
 
     if (this.useSkinning) {
       mesh = new THREE.SkinnedMesh(geometry);
+      //mesh = new THREE.SkinnedMesh(geometry, this.data.materials);
 
       // Assign root bones to mesh
       rootBones.forEach((bone) => {
@@ -257,6 +300,7 @@ class M2 extends THREE.Group {
       mesh.bind(skeleton);
     } else {
       mesh = new THREE.Mesh(geometry);
+      //mesh = new THREE.Mesh(geometry, this.data.materials);
     }
 
     mesh.matrixAutoUpdate = this.matrixAutoUpdate;
@@ -308,6 +352,7 @@ class M2 extends THREE.Group {
 
     const { startTriangle: start, triangleCount: count } = submeshDef;
     for (let i = start, faceIndex = 0; i < start + count; i += 3, ++faceIndex) {
+
       const vindices = [
         indices[triangles[i]],
         indices[triangles[i + 1]],
@@ -336,6 +381,51 @@ class M2 extends THREE.Group {
 
     return bufferGeometry;
   }
+
+  //createSubmeshGeometry(submeshDef, indices, triangles, vertices) {
+  //  const geometry = new THREE.BufferGeometry();
+
+  //  // Arrays to hold the buffer data
+  //  const positions = [];
+  //  const uvs = [];
+  //  const normals = [];
+
+  //  const { startTriangle: start, triangleCount: count } = submeshDef;
+  //  for (let i = start; i < start + count; i += 3) {
+  //    for (let j = 0; j < 3; j++) {
+  //      const index = indices[triangles[i + j]];
+  //      const vertex = vertices[index];
+  //      const position = vertex.position;
+  //      const normal = vertex.normal;
+  //      const uv = vertex.textureCoords[0]; // Assuming the first textureCoords array is what you need
+
+  //      // Adjust position data as needed (X, Z, -Y)
+  //      positions.push(position[0], position[2], -position[1]);
+
+  //      // Assuming normals are structured similarly to positions
+  //      normals.push(normal[0], normal[1], normal[2]);
+
+  //      // Assuming UVs need no special transformation
+  //      uvs.push(uv[0], uv[1]);
+  //    }
+  //  }
+
+  //  // Use addAttribute and applyMatrix below  for three version < 100 ish
+  //  geometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  //  geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  //  geometry.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  //  //geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  //  //geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  //  //geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+
+  //  // Apply transformations as before
+  //  const matrix = new THREE.Matrix4().makeScale(-1, -1, 1);
+  //  geometry.applyMatrix(matrix);
+  //  //geometry.applyMatrix4(matrix);
+  //  geometry.rotateX(-Math.PI / 2);
+
+  //  return geometry;
+  //}
 
   createSubmesh(submeshDef, geometry, batches) {
     const rootBone = this.bones[submeshDef.rootBone];

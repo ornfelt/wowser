@@ -70,6 +70,9 @@ class WMOGroup extends THREE.Mesh {
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    //geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    //geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
     // TODO: Perhaps it is possible to directly use a vec4 here? Currently, color + alpha is
     // combined into a vec4 in the material's vertex shader. For some reason, attempting to
@@ -77,11 +80,14 @@ class WMOGroup extends THREE.Mesh {
     // values in the shader.
     geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.addAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+    //geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    //geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
 
     // Mirror geometry over X and Y axes and rotate
     const matrix = new THREE.Matrix4();
     matrix.makeScale(-1, -1, 1);
     geometry.applyMatrix(matrix);
+    //geometry.applyMatrix4(matrix);
     geometry.rotateX(-Math.PI / 2);
 
     const materialIDs = [];
@@ -124,6 +130,32 @@ class WMOGroup extends THREE.Mesh {
     return multiMaterial;
   }
 
+  //createMultiMaterial(materialIDs, materialDefs, texturePaths) {
+  //  const materials = [];
+
+  //  materialIDs.forEach((materialID) => {
+  //    const materialDef = materialDefs[materialID];
+
+  //    if (this.indoor) {
+  //      materialDef.indoor = true;
+  //    } else {
+  //      materialDef.indoor = false;
+  //    }
+
+  //    if (!this.wmo.data.MOHD.skipBaseColor) {
+  //      materialDef.useBaseColor = true;
+  //      materialDef.baseColor = this.wmo.data.MOHD.baseColor;
+  //    } else {
+  //      materialDef.useBaseColor = false;
+  //    }
+
+  //    const material = this.createMaterial(materialDefs[materialID], texturePaths);
+  //    materials.push(material); // Add the created material to the array
+  //  });
+
+  //  return materials; // Return the array of materials
+  //}
+
   createMaterial(materialDef, texturePaths) {
     const textureDefs = [];
 
@@ -154,6 +186,25 @@ class WMOGroup extends THREE.Mesh {
       material.dispose();
     });
   }
+
+  //dispose() {
+  //  // Dispose of the geometry
+  //  if (this.geometry) {
+  //    this.geometry.dispose();
+  //  }
+
+  //  // If 'this.material' is an array of materials, iterate through it and dispose of each material
+  //  if (Array.isArray(this.material)) {
+  //    this.material.forEach(material => {
+  //      if (material.dispose) {
+  //        material.dispose();
+  //      }
+  //    });
+  //  } else if (this.material && this.material.dispose) {
+  //    // If 'this.material' is a single material instance, just dispose it directly
+  //    this.material.dispose();
+  //  }
+  //}
 
 }
 

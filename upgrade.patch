@@ -1,0 +1,263 @@
+diff --git a/.eslintrc b/.eslintrc
+index 91d4e7c..4a296a9 100644
+--- a/.eslintrc
++++ b/.eslintrc
+@@ -86,6 +86,7 @@
+     "no-unneeded-ternary": "off",
+     "linebreak-style": "off",
+     "import/newline-after-import": "off",
++    "nonblock-statement-body-position": "off",
+ 
+     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
+     "react/sort-comp": [0],
+diff --git a/src/components/game/controls.jsx b/src/components/game/controls.jsx
+index 58f8391..d576dd4 100644
+--- a/src/components/game/controls.jsx
++++ b/src/components/game/controls.jsx
+@@ -52,6 +52,7 @@ class Controls extends React.Component {
+       this.camera.up, new THREE.Vector3(0, 1, 0)
+     );
+     this.quatInverse = this.quat.clone().inverse();
++    //this.quatInverse = this.quat.clone().invert();
+ 
+     this.EPS = 0.000001;
+ 
+diff --git a/src/lib/pipeline/adt/chunk/index.js b/src/lib/pipeline/adt/chunk/index.js
+index a1e27ec..2ff1086 100644
+--- a/src/lib/pipeline/adt/chunk/index.js
++++ b/src/lib/pipeline/adt/chunk/index.js
+@@ -88,6 +88,11 @@ class Chunk extends THREE.Mesh {
+     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+     geometry.addAttribute('uvAlpha', new THREE.BufferAttribute(uvsAlpha, 2));
+ 
++    //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
++    //geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
++    //geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
++    //geometry.setAttribute('uvAlpha', new THREE.BufferAttribute(uvsAlpha, 2));
++
+     this.material = new Material(data, textureNames);
+   }
+ 
+diff --git a/src/lib/pipeline/m2/index.js b/src/lib/pipeline/m2/index.js
+index 5cad30a..b56201e 100644
+--- a/src/lib/pipeline/m2/index.js
++++ b/src/lib/pipeline/m2/index.js
+@@ -78,7 +78,11 @@ class M2 extends THREE.Group {
+     }
+ 
+     this.createMesh(this.geometry, this.skeleton, this.rootBones);
++    //try {
+     this.createSubmeshes(data, skinData);
++    //} catch(e) {
++    //    console.log(e)
++    //}
+   }
+ 
+   createSkeleton(boneDefs) {
+@@ -241,11 +245,50 @@ class M2 extends THREE.Group {
+     this.geometry = geometry;
+   }
+ 
++  //createGeometry(vertices) {
++  //  const geometry = new THREE.BufferGeometry();
++
++  //  const positions = new Float32Array(vertices.length * 3);
++  //  const skinIndices = new Float32Array(vertices.length * 4);
++  //  const skinWeights = new Float32Array(vertices.length * 4);
++
++  //  vertices.forEach((vertex, index) => {
++  //    // Fill positions (mirrored over X and Y axes and rotated)
++  //    positions[index * 3 + 0] = vertex.position[0];
++  //    positions[index * 3 + 1] = vertex.position[2]; // Swap Y and Z
++  //    positions[index * 3 + 2] = -vertex.position[1];
++
++  //    // Fill skinIndices
++  //    skinIndices.set(vertex.boneIndices, index * 4);
++
++  //    // Fill skinWeights
++  //    skinWeights.set(vertex.boneWeights, index * 4);
++  //  });
++
++  //  // Set geometry attributes
++  //  // Use addAttribute and applyMatrix below  for three version < 100 ish
++  //  geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
++  //  geometry.addAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
++  //  geometry.addAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
++  //  //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
++  //  //geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
++  //  //geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
++
++  //  // Apply transformations after filling in the positions
++  //  const matrix = new THREE.Matrix4().makeScale(-1, -1, 1); // Mirror over X and Y
++  //  geometry.applyMatrix(matrix);
++  //  //geometry.applyMatrix4(matrix);
++  //  geometry.rotateX(-Math.PI / 2); // Additional rotation
++
++  //  this.geometry = geometry;
++  //}
++
+   createMesh(geometry, skeleton, rootBones) {
+     let mesh;
+ 
+     if (this.useSkinning) {
+       mesh = new THREE.SkinnedMesh(geometry);
++      //mesh = new THREE.SkinnedMesh(geometry, this.data.materials);
+ 
+       // Assign root bones to mesh
+       rootBones.forEach((bone) => {
+@@ -257,6 +300,7 @@ class M2 extends THREE.Group {
+       mesh.bind(skeleton);
+     } else {
+       mesh = new THREE.Mesh(geometry);
++      //mesh = new THREE.Mesh(geometry, this.data.materials);
+     }
+ 
+     mesh.matrixAutoUpdate = this.matrixAutoUpdate;
+@@ -308,6 +352,7 @@ class M2 extends THREE.Group {
+ 
+     const { startTriangle: start, triangleCount: count } = submeshDef;
+     for (let i = start, faceIndex = 0; i < start + count; i += 3, ++faceIndex) {
++
+       const vindices = [
+         indices[triangles[i]],
+         indices[triangles[i + 1]],
+@@ -337,6 +382,51 @@ class M2 extends THREE.Group {
+     return bufferGeometry;
+   }
+ 
++  //createSubmeshGeometry(submeshDef, indices, triangles, vertices) {
++  //  const geometry = new THREE.BufferGeometry();
++
++  //  // Arrays to hold the buffer data
++  //  const positions = [];
++  //  const uvs = [];
++  //  const normals = [];
++
++  //  const { startTriangle: start, triangleCount: count } = submeshDef;
++  //  for (let i = start; i < start + count; i += 3) {
++  //    for (let j = 0; j < 3; j++) {
++  //      const index = indices[triangles[i + j]];
++  //      const vertex = vertices[index];
++  //      const position = vertex.position;
++  //      const normal = vertex.normal;
++  //      const uv = vertex.textureCoords[0]; // Assuming the first textureCoords array is what you need
++
++  //      // Adjust position data as needed (X, Z, -Y)
++  //      positions.push(position[0], position[2], -position[1]);
++
++  //      // Assuming normals are structured similarly to positions
++  //      normals.push(normal[0], normal[1], normal[2]);
++
++  //      // Assuming UVs need no special transformation
++  //      uvs.push(uv[0], uv[1]);
++  //    }
++  //  }
++
++  //  // Use addAttribute and applyMatrix below  for three version < 100 ish
++  //  geometry.addAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
++  //  geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
++  //  geometry.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
++  //  //geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
++  //  //geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
++  //  //geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
++
++  //  // Apply transformations as before
++  //  const matrix = new THREE.Matrix4().makeScale(-1, -1, 1);
++  //  geometry.applyMatrix(matrix);
++  //  //geometry.applyMatrix4(matrix);
++  //  geometry.rotateX(-Math.PI / 2);
++
++  //  return geometry;
++  //}
++
+   createSubmesh(submeshDef, geometry, batches) {
+     const rootBone = this.bones[submeshDef.rootBone];
+ 
+diff --git a/src/lib/pipeline/wmo/group/index.js b/src/lib/pipeline/wmo/group/index.js
+index a70f32d..6b7a33f 100644
+--- a/src/lib/pipeline/wmo/group/index.js
++++ b/src/lib/pipeline/wmo/group/index.js
+@@ -70,6 +70,9 @@ class WMOGroup extends THREE.Mesh {
+     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+     geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
+     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
++    //geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
++    //geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
++    //geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+ 
+     // TODO: Perhaps it is possible to directly use a vec4 here? Currently, color + alpha is
+     // combined into a vec4 in the material's vertex shader. For some reason, attempting to
+@@ -77,11 +80,14 @@ class WMOGroup extends THREE.Mesh {
+     // values in the shader.
+     geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+     geometry.addAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
++    //geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
++    //geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+ 
+     // Mirror geometry over X and Y axes and rotate
+     const matrix = new THREE.Matrix4();
+     matrix.makeScale(-1, -1, 1);
+     geometry.applyMatrix(matrix);
++    //geometry.applyMatrix4(matrix);
+     geometry.rotateX(-Math.PI / 2);
+ 
+     const materialIDs = [];
+@@ -124,6 +130,32 @@ class WMOGroup extends THREE.Mesh {
+     return multiMaterial;
+   }
+ 
++  //createMultiMaterial(materialIDs, materialDefs, texturePaths) {
++  //  const materials = [];
++
++  //  materialIDs.forEach((materialID) => {
++  //    const materialDef = materialDefs[materialID];
++
++  //    if (this.indoor) {
++  //      materialDef.indoor = true;
++  //    } else {
++  //      materialDef.indoor = false;
++  //    }
++
++  //    if (!this.wmo.data.MOHD.skipBaseColor) {
++  //      materialDef.useBaseColor = true;
++  //      materialDef.baseColor = this.wmo.data.MOHD.baseColor;
++  //    } else {
++  //      materialDef.useBaseColor = false;
++  //    }
++
++  //    const material = this.createMaterial(materialDefs[materialID], texturePaths);
++  //    materials.push(material); // Add the created material to the array
++  //  });
++
++  //  return materials; // Return the array of materials
++  //}
++
+   createMaterial(materialDef, texturePaths) {
+     const textureDefs = [];
+ 
+@@ -155,6 +187,25 @@ class WMOGroup extends THREE.Mesh {
+     });
+   }
+ 
++  //dispose() {
++  //  // Dispose of the geometry
++  //  if (this.geometry) {
++  //    this.geometry.dispose();
++  //  }
++
++  //  // If 'this.material' is an array of materials, iterate through it and dispose of each material
++  //  if (Array.isArray(this.material)) {
++  //    this.material.forEach(material => {
++  //      if (material.dispose) {
++  //        material.dispose();
++  //      }
++  //    });
++  //  } else if (this.material && this.material.dispose) {
++  //    // If 'this.material' is a single material instance, just dispose it directly
++  //    this.material.dispose();
++  //  }
++  //}
++
+ }
+ 
+ export default WMOGroup;

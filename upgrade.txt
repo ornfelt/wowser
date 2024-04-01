@@ -1,0 +1,11 @@
+To upgrade three version, see upgrade.patch...
+It's a WIP - not working quite yet (tried with three v. 100 and 162).
+
+Find and replace three imports:
+
+find . -type f -name "*.js" -exec sed -i 's/import THREE from '\''three'\'';/import * as THREE from '\''three'\'';/g' {} +
+find . \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's/import THREE from '\''three'\'';/import * as THREE from '\''three'\'';/g' {} +
+
+Change back:
+find . \( -name "*.js" -o -name "*.jsx" \) -exec sed -i 's/import \* as THREE from '\''three'\'';/import THREE from '\''three'\'';/g' {} +
+
