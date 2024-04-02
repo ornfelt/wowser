@@ -26,6 +26,11 @@ class Unit extends Entity {
 
     this._displayID = 0;
     this._model = null;
+
+    this.isMoving = false;
+    this.isInBetweenMovement = false;
+    this.restTime = 0;
+    this.inRest = false;
   }
 
   get position() {
@@ -82,13 +87,39 @@ class Unit extends Entity {
     // Auto-play animation index 0 in unit model, if present
     // TODO: Properly manage unit animations
     if (m2.animated && m2.animations.length > 0) {
-      m2.animations.playAnimation(0);
-      //m2.animations.playAnimation(11);
+      //m2.animations.playAnimation(0); // swim/fly
+      //m2.animations.playAnimation(1); // swim/fly
+      //m2.animations.playAnimation(2); // jump
+      //m2.animations.playAnimation(3); // jump
+      //m2.animations.playAnimation(4); // idle
+
+      m2.animations.playAnimation(5); // Restless idle 1
+      //m2.animations.playAnimation(6); // Restless idle 2
+
+      //m2.animations.playAnimation(7); // Walking
+      //m2.animations.playAnimation(8); // Dying
+      //m2.animations.playAnimation(9); // Dying
+      //m2.animations.playAnimation(10); // Dead
+      //m2.animations.playAnimation(11); // Running
+      //m2.animations.playAnimation(12); // Getting hit
+      //m2.animations.playAnimation(13); // Fly 2
+      //m2.animations.playAnimation(14); // Fly 3
+      //m2.animations.playAnimation(15); // Attack?
       m2.animations.playAllSequences();
     }
 
     this.emit('model:change', this, this._model, m2);
     this._model = m2;
+  }
+
+  playAnimationByIndex(index) {
+    if (this.currentAnimation !== index) {
+      if (this.currentAnimation) {
+        this._model.animations.stopAnimation(this.currentAnimation);
+      }
+      this._model.animations.playAnimation(index);
+      this.currentAnimation = index;
+    }
   }
 
   ascend(delta) {

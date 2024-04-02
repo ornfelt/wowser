@@ -87,13 +87,26 @@ class Controls extends React.Component {
     // TODO: Get rid of this delta retrieval call
     const delta = this.clock.getDelta();
 
+    let anyMovementKey = false;
+
     if (this.unit) {
       if (key.isPressed('up') || key.isPressed('w')) {
         unit.moveForward(delta);
+        anyMovementKey = true;
+        if (!unit.isMoving) {
+          unit.isMoving = true;
+          //unit.playAnimationByIndex(0);
+          unit.playAnimationByIndex(11);
+        }
       }
 
-      //if (key.isPressed('down') || key.isPressed('s')) {
-      if (key.isPressed('down')) {
+      if (key.isPressed('down') || key.isPressed('s')) {
+      //if (key.isPressed('down')) {
+        anyMovementKey = true;
+        if (!unit.isMoving) {
+          unit.isMoving = true;
+          unit.playAnimationByIndex(14);
+        }
         unit.moveBackward(delta);
       }
 
@@ -107,11 +120,21 @@ class Controls extends React.Component {
 
       if (key.isPressed('space')) {
         unit.ascend(delta);
+        anyMovementKey = true;
+        if (!unit.isMoving) {
+          unit.isMoving = true;
+          unit.playAnimationByIndex(13);
+        }
       }
 
-      //if (key.isPressed('x')) {
-      if (key.isPressed('s')) {
+      if (key.isPressed('x')) {
+      //if (key.isPressed('s')) {
         unit.descend(delta);
+        anyMovementKey = true;
+        if (!unit.isMoving) {
+          unit.isMoving = true;
+          unit.playAnimationByIndex(1);
+        }
       }
 
       if (key.isPressed('left') || key.isPressed('a')) {
@@ -120,6 +143,26 @@ class Controls extends React.Component {
 
       if (key.isPressed('right') || key.isPressed('d')) {
         unit.rotateRight(delta);
+      }
+
+      if (!anyMovementKey && unit.isMoving) {
+        unit.isInBetweenMovement = true;
+      }
+      if (!anyMovementKey && unit.isInBetweenMovement) {
+        unit.playAnimationByIndex(4);
+        unit.isMoving = false;
+        unit.isInBetweenMovement = false;
+        unit.restTime = 0;
+      } else if (!anyMovementKey) {
+        unit.restTime += 1;
+        if (!unit.inRest && unit.restTime > 500) {
+          unit.inRest = true;
+          unit.playAnimationByIndex(6);
+        } else if (unit.inRest && unit.restTime > 600) {
+          unit.inRest = false;
+          unit.playAnimationByIndex(5);
+          unit.restTime = 0;
+        }
       }
 
       this.target = this.unit.position;
