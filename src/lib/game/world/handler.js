@@ -12,6 +12,9 @@ class WorldHandler extends EventEmitter {
     super();
     this.session = session;
     this.player = this.session.player;
+    this.playertwo = this.session.playertwo;
+    this.spell = this.session.spell;
+    this.player.spell = this.spell;
 
     this.scene = new THREE.Scene();
     this.scene.matrixAutoUpdate = false;
@@ -24,9 +27,21 @@ class WorldHandler extends EventEmitter {
 
     this.entities = new Set();
     this.add(this.player);
+    this.add(this.playertwo);
+    this.add(this.spell);
 
     this.player.on('map:change', this.changeMap);
     this.player.on('position:change', this.changePosition);
+
+    // Use spread operator (...) to arguments to the function calls.
+    const spawnCoords = [0, -10559, -1189, 28];
+    this.playertwo.on('map:change', this.changeMap);
+    this.playertwo.on('position:change', this.changePosition);
+    this.playertwo.worldport(...spawnCoords);
+
+    this.spell.on('map:change', this.changeMap);
+    this.spell.on('position:change', this.changePosition);
+    this.spell.worldport(...spawnCoords);
 
     this.player.worldport(0, -10559, -1189, 28); // Darkshire (Eastern Kingdoms)
     //this.player.worldport(0, -14354, 518, 22); // Booty Bay (Eastern Kingdoms)

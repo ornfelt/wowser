@@ -110,6 +110,22 @@ class Controls extends React.Component {
         unit.moveBackward(delta);
       }
 
+      if (key.isPressed('c')) {
+        //unit.spell.despawn();
+        unit.castSpell();
+        unit.isCasting = true;
+      }
+
+      if (unit.isCasting) {
+        if (unit.castTick > 20) {
+          unit.isCasting = false;
+          unit.castTick = 0;
+          unit.stopCastSpell();
+        }
+        unit.spell.moveForward(delta);
+        unit.castTick += 1;
+      }
+
       if (key.isPressed('q')) {
         unit.strafeLeft(delta);
       }
@@ -155,10 +171,10 @@ class Controls extends React.Component {
         unit.restTime = 0;
       } else if (!anyMovementKey) {
         unit.restTime += 1;
-        if (!unit.inRest && unit.restTime > 500) {
+        if (!unit.inRest && unit.restTime > 550) {
           unit.inRest = true;
           unit.playAnimationByIndex(6);
-        } else if (unit.inRest && unit.restTime > 600) {
+        } else if (unit.inRest && unit.restTime > 700) {
           unit.inRest = false;
           unit.playAnimationByIndex(5);
           unit.restTime = 0;

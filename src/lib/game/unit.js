@@ -31,6 +31,9 @@ class Unit extends Entity {
     this.isInBetweenMovement = false;
     this.restTime = 0;
     this.inRest = false;
+
+    this.isCasting = false;
+    this.castTick = 0;
   }
 
   get position() {
@@ -46,22 +49,51 @@ class Unit extends Entity {
       return;
     }
 
-    DBC.load('CreatureDisplayInfo', displayID).then((displayInfo) => {
-      this._displayID = displayID;
-      this.displayInfo = displayInfo;
-      const { modelID } = displayInfo;
+    // Spells
+    if (displayID === 999999) {
+          this._displayID = displayID;
+          //M2Blueprint.load("spells\\blizzard_impact_base.m2").then((m2) => {
+          M2Blueprint.load("spells\\frostbolt.m2").then((m2) => {
+          //M2Blueprint.load("spells\\shaman_thunder.m2").then((m2) => {
+          //M2Blueprint.load("spells\\chainlightning_fel_impact_chest.m2").then((m2) => {
+          //M2Blueprint.load("spells\\chainlightning_impact_chest.m2").then((m2) => {
+          //M2Blueprint.load("spells\\ice_missile_high.m2").then((m2) => {
+          //M2Blueprint.load("spells\\ice_nova.m2").then((m2) => {
+          //M2Blueprint.load("spells\\lightningbolt_missile.m2").then((m2) => {
+          //M2Blueprint.load("spells\\meteor_ball_missile.m2").then((m2) => {
+          //M2Blueprint.load("spells\\missile_wave_arcane.m2").then((m2) => {
+          //M2Blueprint.load("spells\\missile_wave_fire.m2").then((m2) => {
+          //M2Blueprint.load("spells\\icespike_impact_new.m2").then((m2) => {
+          //M2Blueprint.load("spells\\groundspike_impact.m2").then((m2) => {
+          //M2Blueprint.load("spells\\rag_firenova_area.m2").then((m2) => {
+          //M2Blueprint.load("spells\\arcaneexplosion_base.m2").then((m2) => {
+          //M2Blueprint.load("spells\\waterbolt_missile_low.m2").then((m2) => {
+          //M2Blueprint.load("spells\\fire_form_precast.m2").then((m2) => {
+          //M2Blueprint.load("spells\\fireball_missile_high.m2").then((m2) => {
+          //M2Blueprint.load("spells\\fireball_blue_missile_high.m2").then((m2) => {
+          // etc...
 
-      DBC.load('CreatureModelData', modelID).then((modelData) => {
-        this.modelData = modelData;
-        this.modelData.path = this.modelData.file.match(/^(.+?)(?:[^\\]+)$/)[1];
-        this.displayInfo.modelData = this.modelData;
-
-        M2Blueprint.load(this.modelData.file).then((m2) => {
-          m2.displayInfo = this.displayInfo;
           this.model = m2;
+          this._model.visible = false;
+        });
+    } else {
+      DBC.load('CreatureDisplayInfo', displayID).then((displayInfo) => {
+        this._displayID = displayID;
+        this.displayInfo = displayInfo;
+        const { modelID } = displayInfo;
+
+        DBC.load('CreatureModelData', modelID).then((modelData) => {
+          this.modelData = modelData;
+          this.modelData.path = this.modelData.file.match(/^(.+?)(?:[^\\]+)$/)[1];
+          this.displayInfo.modelData = this.modelData;
+
+          M2Blueprint.load(this.modelData.file).then((m2) => {
+            m2.displayInfo = this.displayInfo;
+            this.model = m2;
+          });
         });
       });
-    });
+    }
   }
 
   get view() {
@@ -87,24 +119,27 @@ class Unit extends Entity {
     // Auto-play animation index 0 in unit model, if present
     // TODO: Properly manage unit animations
     if (m2.animated && m2.animations.length > 0) {
-      //m2.animations.playAnimation(0); // swim/fly
-      //m2.animations.playAnimation(1); // swim/fly
-      //m2.animations.playAnimation(2); // jump
-      //m2.animations.playAnimation(3); // jump
-      //m2.animations.playAnimation(4); // idle
 
-      m2.animations.playAnimation(5); // Restless idle 1
-      //m2.animations.playAnimation(6); // Restless idle 2
-
-      //m2.animations.playAnimation(7); // Walking
-      //m2.animations.playAnimation(8); // Dying
-      //m2.animations.playAnimation(9); // Dying
-      //m2.animations.playAnimation(10); // Dead
-      //m2.animations.playAnimation(11); // Running
-      //m2.animations.playAnimation(12); // Getting hit
-      //m2.animations.playAnimation(13); // Fly 2
-      //m2.animations.playAnimation(14); // Fly 3
-      //m2.animations.playAnimation(15); // Attack?
+      if (this._displayID === 999999) {
+        m2.animations.playAnimation(0); // Restless idle 1
+      } else {
+        //m2.animations.playAnimation(0); // swim/fly
+        //m2.animations.playAnimation(1); // swim/fly
+        //m2.animations.playAnimation(2); // jump
+        //m2.animations.playAnimation(3); // jump
+        //m2.animations.playAnimation(4); // idle
+        m2.animations.playAnimation(5); // Restless idle 1
+        //m2.animations.playAnimation(6); // Restless idle 2
+        //m2.animations.playAnimation(7); // Walking
+        //m2.animations.playAnimation(8); // Dying
+        //m2.animations.playAnimation(9); // Dying
+        //m2.animations.playAnimation(10); // Dead
+        //m2.animations.playAnimation(11); // Running
+        //m2.animations.playAnimation(12); // Getting hit
+        //m2.animations.playAnimation(13); // Fly 2
+        //m2.animations.playAnimation(14); // Fly 3
+        //m2.animations.playAnimation(15); // Attack?
+      }
       m2.animations.playAllSequences();
     }
 
@@ -113,6 +148,7 @@ class Unit extends Entity {
   }
 
   playAnimationByIndex(index) {
+    if (this._model) {
     if (this.currentAnimation !== index) {
       if (this.currentAnimation) {
         this._model.animations.stopAnimation(this.currentAnimation);
@@ -120,6 +156,30 @@ class Unit extends Entity {
       this._model.animations.playAnimation(index);
       this.currentAnimation = index;
     }
+    }
+  }
+
+  castSpell() {
+      if (this.isCasting) {
+        return;
+      }
+      //this.spell.setVisible(!this.spell.getVisible());
+      this.spell.position.copy(this.position);
+      this.spell.view.rotation.z = this.view.rotation.z;
+      this.spell.setVisible(true);
+  }
+
+  stopCastSpell() {
+      this.spell.setVisible(false);
+  }
+
+  setVisible(visibility) {
+      //this.view.remove(this._model);
+      this._model.visible = visibility;
+  }
+
+  getVisible() {
+    return this._model ? this._model.visible : false;
   }
 
   ascend(delta) {
