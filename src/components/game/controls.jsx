@@ -117,14 +117,27 @@ class Controls extends React.Component {
       }
 
       if (unit.isCasting) {
-        if (unit.castTick > 20) {
-          unit.isCasting = false;
-          unit.castTick = 0;
-          unit.stopCastSpell();
-        }
-        unit.spell.moveForward(delta);
-        unit.castTick += 1;
+        unit.updateSpellPosition(delta);
       }
+
+      if (key.isPressed('t')) {
+        unit.targetunit.castSpell();
+        unit.targetunit.isCasting = true;
+      }
+
+      if (unit.targetunit.isCasting) {
+        unit.targetunit.updateSpellPosition(delta);
+      }
+
+      //if (unit.isCasting) {
+      //  if (unit.castTick > 20) {
+      //    unit.isCasting = false;
+      //    unit.castTick = 0;
+      //    unit.stopCastSpell();
+      //  }
+      //  unit.spell.moveForward(delta);
+      //  unit.castTick += 1;
+      //}
 
       if (key.isPressed('q')) {
         unit.strafeLeft(delta);

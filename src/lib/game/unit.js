@@ -52,15 +52,15 @@ class Unit extends Entity {
     // Spells
     if (displayID === 999999) {
           this._displayID = displayID;
+          //M2Blueprint.load("spells\\frostbolt.m2").then((m2) => {
+          M2Blueprint.load("spells\\meteor_ball_missile.m2").then((m2) => { // COOL
+          //M2Blueprint.load("spells\\pyroblast_missile.m2").then((m2) => {
           //M2Blueprint.load("spells\\blizzard_impact_base.m2").then((m2) => {
-          M2Blueprint.load("spells\\frostbolt.m2").then((m2) => {
           //M2Blueprint.load("spells\\shaman_thunder.m2").then((m2) => {
           //M2Blueprint.load("spells\\chainlightning_fel_impact_chest.m2").then((m2) => {
           //M2Blueprint.load("spells\\chainlightning_impact_chest.m2").then((m2) => {
           //M2Blueprint.load("spells\\ice_missile_high.m2").then((m2) => {
-          //M2Blueprint.load("spells\\ice_nova.m2").then((m2) => {
           //M2Blueprint.load("spells\\lightningbolt_missile.m2").then((m2) => {
-          //M2Blueprint.load("spells\\meteor_ball_missile.m2").then((m2) => {
           //M2Blueprint.load("spells\\missile_wave_arcane.m2").then((m2) => {
           //M2Blueprint.load("spells\\missile_wave_fire.m2").then((m2) => {
           //M2Blueprint.load("spells\\icespike_impact_new.m2").then((m2) => {
@@ -71,7 +71,19 @@ class Unit extends Entity {
           //M2Blueprint.load("spells\\fire_form_precast.m2").then((m2) => {
           //M2Blueprint.load("spells\\fireball_missile_high.m2").then((m2) => {
           //M2Blueprint.load("spells\\fireball_blue_missile_high.m2").then((m2) => {
-          // etc...
+
+          //M2Blueprint.load("spells\\fel_fireball_missile_high.m2").then((m2) => {
+          //M2Blueprint.load("spells\\fel_firebolt_missile_low.m2").then((m2) => {
+          //M2Blueprint.load("spells\\fel_pyroblast_missile.m2").then((m2) => {
+          //M2Blueprint.load("spells\\firebolt_missile_low.m2").then((m2) => {
+          //M2Blueprint.load("spells\\firebomb_missle.m2").then((m2) => { // LIKE A SUN
+          //M2Blueprint.load("spells\\arcanebomb_missle.m2").then((m2) => {
+          //M2Blueprint.load("spells\\missile_bomb.m2").then((m2) => { // small...
+          //M2Blueprint.load("spells\\firenova_area.m2").then((m2) => {
+          //M2Blueprint.load("spells\\ice_nova.m2").then((m2) => { // CRAZY BIG
+          //M2Blueprint.load("spells\\lightning_ring_nova.m2").then((m2) => {
+          //M2Blueprint.load("spells\\shadow_nova_area.m2").then((m2) => {
+          //M2Blueprint.load("spells\\water_nova.m2").then((m2) => {
 
           this.model = m2;
           this._model.visible = false;
@@ -159,6 +171,22 @@ class Unit extends Entity {
     }
   }
 
+  setTargetPositionInFront(distance) {
+    //const forward = new THREE.Vector3(0, 0, -1); // Beneath
+    const forward = new THREE.Vector3(1, 0, 0);
+    forward.transformDirection(this.view.matrixWorld);
+
+    // Scale the forward vector by the desired distance
+    forward.multiplyScalar(distance);
+
+    // Add the scaled forward vector to the spell's current position to get the target position
+    //const targetPosition = this.spell._model.position.clone().add(forward);
+    const targetPosition = this.spell.position.clone().add(forward);
+
+    // Set the target position
+    this.spell.targetPosition = targetPosition;
+  }
+
   castSpell() {
       if (this.isCasting) {
         return;
@@ -167,6 +195,29 @@ class Unit extends Entity {
       this.spell.position.copy(this.position);
       this.spell.view.rotation.z = this.view.rotation.z;
       this.spell.setVisible(true);
+      //this.spell.targetPosition = new THREE.Vector3(-10559, -1189, 28);
+      //this.spell.targetPosition = player2.position; // TODO
+      //this.setTargetPositionInFront(25);
+      this.spell.targetPosition = this.targetunit.position;
+  }
+
+  updateSpellPosition(delta) {
+    if (!this.isCasting) return;
+
+    // Calculate direction to target
+    let direction = new THREE.Vector3().subVectors(this.spell.targetPosition, this.spell.position);
+    let distance = direction.length();
+
+    if (distance < 1) {
+      this.isCasting = false;
+      this.stopCastSpell();
+      return;
+    }
+
+    // Normalize direction and move towards target
+    direction.normalize();
+    this.spell.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+    this.emit('position:change', this);
   }
 
   stopCastSpell() {

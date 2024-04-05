@@ -89,6 +89,7 @@
     "nonblock-statement-body-position": "off",
     "no-mixed-spaces-and-tabs": "off",
     "eqeqeq": "off",
+    "no-extra-semi": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],

@@ -15,6 +15,7 @@ class WorldHandler extends EventEmitter {
     this.playertwo = this.session.playertwo;
     this.spell = this.session.spell;
     this.player.spell = this.spell;
+    this.playertwo.spell = this.spell;
 
     this.scene = new THREE.Scene();
     this.scene.matrixAutoUpdate = false;
@@ -42,6 +43,10 @@ class WorldHandler extends EventEmitter {
     this.spell.on('map:change', this.changeMap);
     this.spell.on('position:change', this.changePosition);
     this.spell.worldport(...spawnCoords);
+
+    // Targets
+    this.player.targetunit = this.playertwo;
+    this.playertwo.targetunit = this.player;
 
     this.player.worldport(0, -10559, -1189, 28); // Darkshire (Eastern Kingdoms)
     //this.player.worldport(0, -14354, 518, 22); // Booty Bay (Eastern Kingdoms)
