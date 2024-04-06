@@ -246,7 +246,52 @@ class Unit extends Entity {
   moveForward(delta) {
     this.view.translateX(this.moveSpeed * delta);
     this.emit('position:change', this);
+    //this.moveForwardIfPathExists(delta);
   }
+
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+//moveForwardIfPathExists(delta) {
+//  const forwardDistance = this.moveSpeed * delta;
+//  const forwardPosition = {
+//    x: this.position.x + forwardDistance,
+//    y: this.position.y, // Assuming movement along the X axis only for simplicity
+//    z: this.position.z
+//  };
+//  const requestData = {
+//    mapId: 0,
+//    origin: { x: this.position.x, y: this.position.y, z: this.position.z },
+//    end: { x: forwardPosition.x, y: forwardPosition.y, z: forwardPosition.z },
+//    flags: 0
+//  };
+//
+//  fetch('http://192.168.1.176:5000/pathfinding/GetPath', {
+//    method: 'POST',
+//    headers: { 'Content-Type': 'application/json' },
+//    body: JSON.stringify(requestData)
+//  })
+//  .then(response => {
+//    if (!response.ok) {
+//      throw new Error(`An error has occurred: ${response.status}`);
+//    }
+//    return response.json();
+//  })
+//  .then(path => {
+//    if (path && path.length > 0) {
+//      console.log('Path received:', path);
+//      this.view.translateX(forwardDistance);
+//      this.emit('position:change', this);
+//    } else {
+//      console.log('No valid path received. Character does not move.');
+//    }
+//  })
+//  .catch(error => {
+//    console.error('Fetch error:', error);
+//  });
+//}
+
+
+
+
 
   moveBackward(delta) {
     this.view.translateX(-this.moveSpeed * delta);
