@@ -37,6 +37,15 @@ class Unit extends Entity {
     this.isCasting = false;
     this.castTick = 0;
     this.loader = new Loader();
+
+    this.wanderNodes = [
+      { x: -10559, y: -1189, z: 28 },
+      { x: -10529.99003498406, y: -1159.5994375462617, z: 34.841029113612024 },
+      { x: -10501.042025497547, y: -1185.1095881134734, z: 28.13749926004446 },
+      { x: -10367.94, y: -1112.29, z: 21.92 },
+      { x: -10473.45439806149, y: -1230.4467712665764, z: 33.73749926004446 },
+      { x: -10521.560939540097, y: -1274.5943062483786, z: 39.89749926004446},
+    ];
   }
 
   get position() {
@@ -171,7 +180,7 @@ class Unit extends Entity {
   }
 
   playAnimationByIndex(index) {
-    if (this.currentAnimation !== index) {
+    if (this._model && this.currentAnimation !== index) {
       //if (this.currentAnimation) {
         this._model.animations.stopAnimation(this.currentAnimation);
       //}
@@ -288,7 +297,6 @@ class Unit extends Entity {
     //this.printPositionInfo(delta);
     this.view.translateX(this.moveSpeed * delta);
     this.emit('position:change', this);
-
     //this.moveForwardIfPathExists(delta);
   }
 
@@ -303,12 +311,28 @@ class Unit extends Entity {
     console.log("x: " + forwardPosition.x + ", y: " + forwardPosition.y + ", z: " + forwardPosition.z);
   }
 
-  moveInPath() {
+  startWandering() {
+    if (this.isMovingInPath) return;
+
+    // Find the closest wander node
+    const closestNode = this.wanderNodes.reduce((prev, curr) => {
+      const prevDistance = this.position.distanceTo(new THREE.Vector3(prev.x, prev.y, prev.z));
+      const currDistance = this.position.distanceTo(new THREE.Vector3(curr.x, curr.y, curr.z));
+      return (prevDistance < currDistance) ? prev : curr;
+    });
+
+    // Start moving towards the closest node
+    this.currentWanderIndex = this.wanderNodes.indexOf(closestNode);
+    this.moveInPath(closestNode);
+  }
+
+  moveInPath(targetNode) {
     if (this.isMovingInPath) {
       return;
     }
 
-    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}`;
+    //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -316,8 +340,8 @@ class Unit extends Entity {
           this.moveInPathRequested = false;
           return;
         }
-        const pathString = new TextDecoder().decode(response); // If needed
-        console.log("GOT PATHSTRING: " + pathString);
+        const pathString = new TextDecoder().decode(response);
+        //console.log("GOT PATHSTRING: " + pathString);
         //const pathPoints = pathString.split(";").map(point => {
         //  const [X, Y, Z] = point.split(",").map(Number);
         //  return { X, Y, Z };
@@ -331,9 +355,9 @@ class Unit extends Entity {
         const epsilon = 0.1; // Tolerance for floating-point comparison
         if (pathPoints.length > 0) {
           const lastPoint = pathPoints[pathPoints.length - 1];
-          if (Math.abs(lastPoint.x - this.targetunit.position.x) > epsilon ||
-            Math.abs(lastPoint.y - this.targetunit.position.y) > epsilon ||
-            Math.abs(lastPoint.z - this.targetunit.position.z) > epsilon) {
+          if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
+            Math.abs(lastPoint.y - targetNode.y) > epsilon ||
+            Math.abs(lastPoint.z - targetNode.z) > epsilon) {
             console.log("Failed to find path to destination...");
             this.moveInPathRequested = false;
             return;
@@ -356,20 +380,6 @@ class Unit extends Entity {
       });
   }
 
-  //updatePositionInPath(delta) {
-  //  if (!this.isMovingInPath || this.currentPathIndex >= this.currentPath.length) {
-  //    this.isMovingInPath = false;
-  //    return;
-  //  }
-
-  //  const nextPoint = this.currentPath[this.currentPathIndex];
-  //  this.position.set(nextPoint.X, nextPoint.Y, nextPoint.Z);
-  //  this.view.position.copy(this.position);
-  //  this.currentPathIndex++;
-  //  //console.log("nextPoint x: " + nextPoint.X);
-  //  this.emit('position:change', this);
-  //}
-
   updatePositionInPath(delta) {
     if (!this.isMovingInPath || this.currentPathIndex >= this.currentPath.length) {
       this.isMovingInPath = false;
@@ -389,7 +399,15 @@ class Unit extends Entity {
       if (this.currentPathIndex >= this.currentPath.length) {
         this.isMovingInPath = false;
         this.playIdleAnimation();
-        console.log("Reached destination point!");
+        //console.log("Reached destination point!");
+
+        if (this.isWandering) {
+          this.currentWanderIndex = (this.currentWanderIndex + 1) % this.wanderNodes.length;
+          //console.log("new wander node selected: " + this.currentWanderIndex);
+          const nextNode = this.wanderNodes[this.currentWanderIndex];
+          this.moveInPath(nextNode);
+        }
+
         return;
       }
       const newPoint = this.currentPath[this.currentPathIndex];
@@ -407,55 +425,65 @@ class Unit extends Entity {
     }
     //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
     //this.view.position.copy(this.position);
-    //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
-    this.view.position.add(direction.multiplyScalar((this.moveSpeed) * delta));
-
+    this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
+    //this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
     this.emit('position:change', this);
   }
 
-//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-//moveForwardIfPathExists(delta) {
-//  const forwardDistance = this.moveSpeed * delta;
-//  const forwardPosition = {
-//    x: this.position.x + forwardDistance,
-//    y: this.position.y, // Assuming movement along the X axis only for simplicity
-//    z: this.position.z
-//  };
-//  const requestData = {
-//    mapId: 0,
-//    origin: { x: this.position.x, y: this.position.y, z: this.position.z },
-//    end: { x: forwardPosition.x, y: forwardPosition.y, z: forwardPosition.z },
-//    flags: 0
-//  };
-//
-//  fetch('http://192.168.1.176:5000/pathfinding/GetPath', {
-//    method: 'POST',
-//    headers: { 'Content-Type': 'application/json' },
-//    body: JSON.stringify(requestData)
-//  })
-//  .then(response => {
-//    if (!response.ok) {
-//      throw new Error(`An error has occurred: ${response.status}`);
-//    }
-//    return response.json();
-//  })
-//  .then(path => {
-//    if (path && path.length > 0) {
-//      console.log('Path received:', path);
-//      this.view.translateX(forwardDistance);
-//      this.emit('position:change', this);
-//    } else {
-//      console.log('No valid path received. Character does not move.');
-//    }
-//  })
-//  .catch(error => {
-//    console.error('Fetch error:', error);
-//  });
-//}
+  moveForwardIfPathExists(delta) {
+    const forwardDistance = this.moveSpeed * delta;
+    const forwardPosition = {
+      x: this.position.x + forwardDistance,
+      y: this.position.y, // Assuming movement along the X axis only for simplicity
+      z: this.position.z
+    };
 
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(forwardPosition.x)}&endY=${encodeURIComponent(forwardPosition.y)}&endZ=${encodeURIComponent(forwardPosition.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    this.loader.load(query)
+      .then(response => {
+        if (!response) {
+          console.log("GOT NULL PATH!");
+          return;
+        }
+        const pathString = new TextDecoder().decode(response);
+        //console.log("GOT PATHSTRING: " + pathString);
+        if (pathString.length < 2) {
+          console.log("Failed to find path to destination...");
+          return;
+        } else {
+          //console.log('Valid path!');
+          const pathPoints = pathString.split(";").map(point => {
+            const [x, y, z] = point.split(",").map(Number);
+            return { x, y, z }; // Use lowercase property names
+          });
 
+          //this.view.translateX(forwardDistance);
 
+          const nextPoint = pathPoints[1];
+          //console.log("nextPoint x: " + nextPoint.x);
+          // Calculate direction to target
+          var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
+          var distance = direction.length();
+          //console.log("DIST: " + distance);
 
+          if (distance < 2) {
+            // ...
+          }
+
+          // Normalize direction and move towards target
+          direction.normalize();
+          //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+          //this.view.position.copy(this.position);
+          //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
+          this.view.position.add(direction.multiplyScalar(this.moveSpeed/10 * delta));
+
+          this.emit('position:change', this);
+        }
+      })
+      .catch(error => {
+        console.error("Failed to load navigation path:", error);
+      });
+  }
 
   moveBackward(delta) {
     this.view.translateX(-this.moveSpeed * delta);
@@ -481,6 +509,60 @@ class Unit extends Entity {
     this.view.translateY(-this.moveSpeed * delta);
     this.emit('position:change', this);
   }
+
+  //updatePositionInPath(delta) {
+  //  if (!this.isMovingInPath || this.currentPathIndex >= this.currentPath.length) {
+  //    this.isMovingInPath = false;
+  //    return;
+  //  }
+
+  //  const nextPoint = this.currentPath[this.currentPathIndex];
+  //  this.position.set(nextPoint.X, nextPoint.Y, nextPoint.Z);
+  //  this.view.position.copy(this.position);
+  //  this.currentPathIndex++;
+  //  //console.log("nextPoint x: " + nextPoint.X);
+  //  this.emit('position:change', this);
+  //}
+
+  //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  //moveForwardIfPathExists(delta) {
+  //  const forwardDistance = this.moveSpeed * delta;
+  //  const forwardPosition = {
+  //    x: this.position.x + forwardDistance,
+  //    y: this.position.y, // Assuming movement along the X axis only for simplicity
+  //    z: this.position.z
+  //  };
+  //  const requestData = {
+  //    mapId: 0,
+  //    origin: { x: this.position.x, y: this.position.y, z: this.position.z },
+  //    end: { x: forwardPosition.x, y: forwardPosition.y, z: forwardPosition.z },
+  //    flags: 0
+  //  };
+  //
+  //  fetch('http://192.168.1.176:5000/pathfinding/GetPath', {
+  //    method: 'POST',
+  //    headers: { 'Content-Type': 'application/json' },
+  //    body: JSON.stringify(requestData)
+  //  })
+  //  .then(response => {
+  //    if (!response.ok) {
+  //      throw new Error(`An error has occurred: ${response.status}`);
+  //    }
+  //    return response.json();
+  //  })
+  //  .then(path => {
+  //    if (path && path.length > 0) {
+  //      console.log('Path received:', path);
+  //      this.view.translateX(forwardDistance);
+  //      this.emit('position:change', this);
+  //    } else {
+  //      console.log('No valid path received. Character does not move.');
+  //    }
+  //  })
+  //  .catch(error => {
+  //    console.error('Fetch error:', error);
+  //  });
+  //}
 
 }
 

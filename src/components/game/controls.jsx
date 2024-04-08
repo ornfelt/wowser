@@ -117,9 +117,17 @@ class Controls extends React.Component {
         unit.moveBackward(delta);
       }
 
+      if (key.isPressed('y')) {
+        if (!unit.moveInPathRequested) {
+          unit.moveInPathRequested = true;
+          unit.isWandering = true;
+          unit.startWandering();
+        }
+      }
+
       if (key.isPressed('g')) {
         if (!unit.moveInPathRequested) {
-          unit.moveInPath();
+          unit.moveInPath(unit.targetunit.position);
           unit.moveInPathRequested = true;
         }
       }
@@ -220,6 +228,8 @@ class Controls extends React.Component {
 
       if (anyMovementKey) {
         unit.moveInPathRequested = false;
+        unit.isWandering = false;
+        unit.isMovingInPath = false;
       }
 
       this.target = this.unit.position;
