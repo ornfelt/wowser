@@ -47,6 +47,9 @@ class WorldHandler extends EventEmitter {
     // Targets
     this.player.targetunit = this.playertwo;
     this.playertwo.targetunit = this.player;
+    // Map
+    this.player.mapId = 0;
+    this.playertwo.mapId = 1;
 
     this.player.worldport(0, -10559, -1189, 28); // Darkshire (Eastern Kingdoms)
     //this.player.worldport(0, -14354, 518, 22); // Booty Bay (Eastern Kingdoms)

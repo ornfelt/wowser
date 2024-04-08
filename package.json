@@ -43,6 +43,7 @@
     "deep-equal": "^1.0.0",
     "expres": "^0.0.5",
     "express": "^4.9.3",
+    "ffi-napi": "^4.0.3",
     "globby": "^5.0.0",
     "inquirer": "^0.8.5",
     "jsbn": "timkurvers/jsbn.git#wowser",
@@ -55,6 +56,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "readable-stream": "^4.5.2",
+    "ref-napi": "^3.0.3",
+    "ref-struct-napi": "^1.1.1",
     "stream-browserify": "^3.0.0",
     "websockify": "^0.7.1",
     "ws": "1.1.1"

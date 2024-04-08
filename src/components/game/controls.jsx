@@ -91,13 +91,16 @@ class Controls extends React.Component {
 
     if (this.unit) {
       if (key.isPressed('up') || key.isPressed('w')) {
-        unit.moveForward(delta);
         anyMovementKey = true;
         if (!unit.isMoving) {
           unit.isMoving = true;
-          //unit.playAnimationByIndex(0);
-          unit.playAnimationByIndex(11);
+          //if (unit.displayID === 24978)
+          //  unit.playAnimationByIndex(11);
+          //else
+          //  unit.playAnimationByIndex(0);
+          unit.playMoveForwardAnimation();
         }
+        unit.moveForward(delta);
       }
 
       if (key.isPressed('down') || key.isPressed('s')) {
@@ -105,9 +108,24 @@ class Controls extends React.Component {
         anyMovementKey = true;
         if (!unit.isMoving) {
           unit.isMoving = true;
-          unit.playAnimationByIndex(14);
+
+          if (unit.displayID === 24978)
+            unit.playAnimationByIndex(14);
+          else
+            unit.playAnimationByIndex(0);
         }
         unit.moveBackward(delta);
+      }
+
+      if (key.isPressed('g')) {
+        if (!unit.moveInPathRequested) {
+          unit.moveInPath();
+          unit.moveInPathRequested = true;
+        }
+      }
+
+      if(unit.isMovingInPath) {
+        unit.updatePositionInPath(delta);
       }
 
       if (key.isPressed('c')) {
@@ -178,11 +196,17 @@ class Controls extends React.Component {
         unit.isInBetweenMovement = true;
       }
       if (!anyMovementKey && unit.isInBetweenMovement) {
-        unit.playAnimationByIndex(4);
+        //if (unit.displayID === 24978) {
+        //  unit.playAnimationByIndex(4);
+        //} else {
+        //  unit._model.animations.stopAnimation(unit.currentAnimation);
+        //  unit.playAnimationByIndex(2);
+        //}
+        unit.playIdleAnimation();
         unit.isMoving = false;
         unit.isInBetweenMovement = false;
         unit.restTime = 0;
-      } else if (!anyMovementKey) {
+      } else if (!anyMovementKey && !unit.isMovingInPath) {
         unit.restTime += 1;
         if (!unit.inRest && unit.restTime > 550) {
           unit.inRest = true;
@@ -192,6 +216,10 @@ class Controls extends React.Component {
           unit.playAnimationByIndex(5);
           unit.restTime = 0;
         }
+      }
+
+      if (anyMovementKey) {
+        unit.moveInPathRequested = false;
       }
 
       this.target = this.unit.position;

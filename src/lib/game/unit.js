@@ -4,6 +4,8 @@ import DBC from '../pipeline/dbc';
 import Entity from './entity';
 import M2Blueprint from '../pipeline/m2/blueprint';
 
+import Loader from '../net/loader';
+
 class Unit extends Entity {
 
   constructor() {
@@ -34,6 +36,7 @@ class Unit extends Entity {
 
     this.isCasting = false;
     this.castTick = 0;
+    this.loader = new Loader();
   }
 
   get position() {
@@ -135,12 +138,20 @@ class Unit extends Entity {
       if (this._displayID === 999999) {
         m2.animations.playAnimation(0); // Restless idle 1
       } else {
-        //m2.animations.playAnimation(0); // swim/fly
+        //m2.animations.playAnimation(0); // swim/fly or restless idle?
         //m2.animations.playAnimation(1); // swim/fly
         //m2.animations.playAnimation(2); // jump
         //m2.animations.playAnimation(3); // jump
         //m2.animations.playAnimation(4); // idle
-        m2.animations.playAnimation(5); // Restless idle 1
+        if (this._displayID === 24978) {
+          m2.animations.playAnimation(5); // Restless idle 1
+          this.currentAnimation = 5;
+        } else {
+          //m2.animations.playAnimation(36); // Swim
+          m2.animations.playAnimation(2); // Idle?
+          this.currentAnimation = 2;
+        }
+
         //m2.animations.playAnimation(6); // Restless idle 2
         //m2.animations.playAnimation(7); // Walking
         //m2.animations.playAnimation(8); // Dying
@@ -160,14 +171,44 @@ class Unit extends Entity {
   }
 
   playAnimationByIndex(index) {
-    if (this._model) {
     if (this.currentAnimation !== index) {
-      if (this.currentAnimation) {
+      //if (this.currentAnimation) {
         this._model.animations.stopAnimation(this.currentAnimation);
-      }
+      //}
       this._model.animations.playAnimation(index);
       this.currentAnimation = index;
     }
+  }
+
+  playIdleAnimation() {
+    var index;
+    if (this._displayID === 999999) {
+      index = 0
+    } else if (this._displayID === 24978) {
+      index = 4;
+    } else {
+      index = 2;
+    }
+    if (this.currentAnimation !== index) {
+      this._model.animations.stopAnimation(this.currentAnimation);
+      this._model.animations.playAnimation(index);
+      this.currentAnimation = index;
+    }
+  }
+
+  playMoveForwardAnimation() {
+    var index;
+    if (this._displayID === 999999) {
+      index = 0
+    } else if (this._displayID === 24978) {
+      index = 11;
+    } else {
+      index = 0;
+    }
+    if (this.currentAnimation !== index) {
+      this._model.animations.stopAnimation(this.currentAnimation);
+      this._model.animations.playAnimation(index);
+      this.currentAnimation = index;
     }
   }
 
@@ -244,9 +285,132 @@ class Unit extends Entity {
   }
 
   moveForward(delta) {
+    //this.printPositionInfo(delta);
     this.view.translateX(this.moveSpeed * delta);
     this.emit('position:change', this);
+
     //this.moveForwardIfPathExists(delta);
+  }
+
+  printPositionInfo(delta) {
+    console.log("x: " + this.position.x + ", y: " + this.position.y + ", z: " + this.position.z);
+    const forwardDistance = this.moveSpeed * delta;
+    const forwardPosition = {
+      x: this.position.x + forwardDistance,
+      y: this.position.y, // Assuming movement along the X axis only for simplicity
+      z: this.position.z
+    };
+    console.log("x: " + forwardPosition.x + ", y: " + forwardPosition.y + ", z: " + forwardPosition.z);
+  }
+
+  moveInPath() {
+    if (this.isMovingInPath) {
+      return;
+    }
+
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}`;
+    this.loader.load(query)
+      .then(response => {
+        if (!response) {
+          console.log("GOT NULL PATH!");
+          this.moveInPathRequested = false;
+          return;
+        }
+        const pathString = new TextDecoder().decode(response); // If needed
+        console.log("GOT PATHSTRING: " + pathString);
+        //const pathPoints = pathString.split(";").map(point => {
+        //  const [X, Y, Z] = point.split(",").map(Number);
+        //  return { X, Y, Z };
+        //});
+        // Create position object
+        const pathPoints = pathString.split(";").map(point => {
+          const [x, y, z] = point.split(",").map(Number);
+          return { x, y, z }; // Use lowercase property names
+        });
+
+        const epsilon = 0.1; // Tolerance for floating-point comparison
+        if (pathPoints.length > 0) {
+          const lastPoint = pathPoints[pathPoints.length - 1];
+          if (Math.abs(lastPoint.x - this.targetunit.position.x) > epsilon ||
+            Math.abs(lastPoint.y - this.targetunit.position.y) > epsilon ||
+            Math.abs(lastPoint.z - this.targetunit.position.z) > epsilon) {
+            console.log("Failed to find path to destination...");
+            this.moveInPathRequested = false;
+            return;
+          }
+        } else {
+          console.log("Path points are empty.");
+          this.moveInPathRequested = false;
+          return;
+        }
+
+        this.currentPath = pathPoints;
+        this.currentPathIndex = 0;
+        this.isMovingInPath = true;
+        this.moveInPathRequested = false;
+        this.playMoveForwardAnimation();
+      })
+      .catch(error => {
+        console.error("Failed to load navigation path:", error);
+        this.moveInPathRequested = false;
+      });
+  }
+
+  //updatePositionInPath(delta) {
+  //  if (!this.isMovingInPath || this.currentPathIndex >= this.currentPath.length) {
+  //    this.isMovingInPath = false;
+  //    return;
+  //  }
+
+  //  const nextPoint = this.currentPath[this.currentPathIndex];
+  //  this.position.set(nextPoint.X, nextPoint.Y, nextPoint.Z);
+  //  this.view.position.copy(this.position);
+  //  this.currentPathIndex++;
+  //  //console.log("nextPoint x: " + nextPoint.X);
+  //  this.emit('position:change', this);
+  //}
+
+  updatePositionInPath(delta) {
+    if (!this.isMovingInPath || this.currentPathIndex >= this.currentPath.length) {
+      this.isMovingInPath = false;
+      return;
+    }
+
+    const nextPoint = this.currentPath[this.currentPathIndex];
+    const nextPointVec = new THREE.Vector3(nextPoint.x, nextPoint.y, nextPoint.z);
+    //console.log("nextPoint x: " + nextPoint.x);
+    // Calculate direction to target
+    var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
+    var distance = direction.length();
+    //console.log("DIST: " + distance);
+
+    if (distance < 2) {
+      this.currentPathIndex++;
+      if (this.currentPathIndex >= this.currentPath.length) {
+        this.isMovingInPath = false;
+        this.playIdleAnimation();
+        console.log("Reached destination point!");
+        return;
+      }
+      const newPoint = this.currentPath[this.currentPathIndex];
+      //console.log("newpoint x: " + newPoint.x);
+      direction = new THREE.Vector3().subVectors(newPoint, this.position);
+      distance = direction.length();
+    }
+
+    // Normalize direction and move towards target
+    direction.normalize();
+    if (this.currentPathIndex < this.currentPath.length-1) {
+      //this.view.lookAt(nextPointVec);
+      const angle = Math.atan2(direction.y, direction.x);
+      this.view.rotation.z = angle;
+    }
+    //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+    //this.view.position.copy(this.position);
+    //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
+    this.view.position.add(direction.multiplyScalar((this.moveSpeed) * delta));
+
+    this.emit('position:change', this);
   }
 
 //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
