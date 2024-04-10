@@ -198,7 +198,7 @@ class Unit extends Entity {
     } else {
       index = 2;
     }
-    if (this.currentAnimation !== index) {
+    if (this._model && this.currentAnimation !== index) {
       this._model.animations.stopAnimation(this.currentAnimation);
       this._model.animations.playAnimation(index);
       this.currentAnimation = index;
@@ -214,7 +214,7 @@ class Unit extends Entity {
     } else {
       index = 0;
     }
-    if (this.currentAnimation !== index) {
+    if (this._model && this.currentAnimation !== index) {
       this._model.animations.stopAnimation(this.currentAnimation);
       this._model.animations.playAnimation(index);
       this.currentAnimation = index;
@@ -238,7 +238,7 @@ class Unit extends Entity {
   }
 
   castSpell() {
-      if (this.isCasting) {
+      if (this.isCasting || this.targetunit.isCasting) {
         return;
       }
       //this.spell.setVisible(!this.spell.getVisible());

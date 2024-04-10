@@ -93,6 +93,7 @@
     "import/no-named-as-default-member": "off",
     "quote-props": "off",
     "no-lonely-if": "off",
+    "object-curly-spacing": "off",
 
     // See: https://github.com/yannickcr/eslint-plugin-react/issues/128
     "react/sort-comp": [0],
