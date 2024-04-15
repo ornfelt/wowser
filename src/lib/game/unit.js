@@ -22,7 +22,7 @@ class Unit extends Entity {
     this.mp = 0;
 
     this.rotateSpeed = 2;
-    this.moveSpeed = 40;
+    this.moveSpeed = 10;
 
     this._view = new THREE.Group();
 
@@ -295,13 +295,14 @@ class Unit extends Entity {
 
   moveForward(delta) {
     //this.printPositionInfo(delta);
-    this.view.translateX(this.moveSpeed * delta);
-    this.emit('position:change', this);
-    //this.moveForwardIfPathExists(delta);
+    //this.view.translateX(this.moveSpeed * delta);
+    //this.emit('position:change', this);
+    this.moveForwardIfPathExists(delta);
   }
 
   printPositionInfo(delta) {
     console.log("x: " + this.position.x + ", y: " + this.position.y + ", z: " + this.position.z);
+    console.log("rotation: " + this.view.rotation.z);
     const forwardDistance = this.moveSpeed * delta;
     const forwardPosition = {
       x: this.position.x + forwardDistance,
@@ -356,8 +357,10 @@ class Unit extends Entity {
         if (pathPoints.length > 0) {
           const lastPoint = pathPoints[pathPoints.length - 1];
           if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
-            Math.abs(lastPoint.y - targetNode.y) > epsilon ||
-            Math.abs(lastPoint.z - targetNode.z) > epsilon) {
+            // Don't validate Z
+            //Math.abs(lastPoint.y - targetNode.y) > epsilon ||
+            //Math.abs(lastPoint.z - targetNode.z) > epsilon) {
+            Math.abs(lastPoint.y - targetNode.y) > epsilon) {
             console.log("Failed to find path to destination...");
             this.moveInPathRequested = false;
             return;
@@ -425,20 +428,22 @@ class Unit extends Entity {
     }
     //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
     //this.view.position.copy(this.position);
-    this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
-    //this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+    //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
+    this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
     this.emit('position:change', this);
   }
 
   moveForwardIfPathExists(delta) {
-    const forwardDistance = this.moveSpeed * delta;
-    const forwardPosition = {
-      x: this.position.x + forwardDistance,
-      y: this.position.y, // Assuming movement along the X axis only for simplicity
-      z: this.position.z
-    };
+    //const forwardDistance = 10.0;
+    const angle = this.view.rotation.z;
+    //const forwardPosition = {
+    //  x: this.position.x + forwardDistance * Math.cos(angle),
+    //  y: this.position.y + forwardDistance * Math.sin(angle),
+    //  z: this.position.z
+    //};
 
-    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(forwardPosition.x)}&endY=${encodeURIComponent(forwardPosition.y)}&endZ=${encodeURIComponent(forwardPosition.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(forwardPosition.x)}&endY=${encodeURIComponent(forwardPosition.y)}&endZ=${encodeURIComponent(forwardPosition.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -458,16 +463,16 @@ class Unit extends Entity {
           });
 
           //this.view.translateX(forwardDistance);
-
-          const nextPoint = pathPoints[1];
+          //const nextPoint = pathPoints[1]; // This is useful if using calculatePath (with the commented query above)
+          const nextPoint = pathPoints[0];
           //console.log("nextPoint x: " + nextPoint.x);
           // Calculate direction to target
           var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
           var distance = direction.length();
           //console.log("DIST: " + distance);
-
           if (distance < 2) {
-            // ...
+            // Got same position...
+            return;
           }
 
           // Normalize direction and move towards target
@@ -475,7 +480,7 @@ class Unit extends Entity {
           //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
           //this.view.position.copy(this.position);
           //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
-          this.view.position.add(direction.multiplyScalar(this.moveSpeed/10 * delta));
+          this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
 
           this.emit('position:change', this);
         }
