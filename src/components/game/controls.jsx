@@ -125,6 +125,14 @@ class Controls extends React.Component {
         }
       }
 
+      if (key.isPressed('3')) {
+        if (!unit.targetunit.moveInPathRequested) {
+          unit.targetunit.moveInPathRequested = true;
+          unit.targetunit.isWandering = true;
+          unit.targetunit.startWandering();
+        }
+      }
+
       if (key.isPressed('g')) {
         if (!unit.moveInPathRequested) {
           unit.moveInPath(unit.targetunit.position);
@@ -132,8 +140,26 @@ class Controls extends React.Component {
         }
       }
 
+      if (key.isPressed('0')) {
+        unit.teleportTo(unit.targetunit.position);
+      }
+      if (key.isPressed('9')) {
+        unit.targetunit.teleportTo(unit.position);
+      }
+
+      if (key.isPressed('4')) {
+        if (!unit.targetunit.moveInPathRequested) {
+          unit.targetunit.moveInPath(unit.position);
+          unit.targetunit.moveInPathRequested = true;
+        }
+      }
+
       if(unit.isMovingInPath) {
         unit.updatePositionInPath(delta);
+      }
+
+      if(unit.targetunit.isMovingInPath) {
+        unit.targetunit.updatePositionInPath(delta);
       }
 
       if (key.isPressed('c')) {

@@ -46,6 +46,12 @@ class Unit extends Entity {
       { x: -10473.45439806149, y: -1230.4467712665764, z: 33.73749926004446 },
       { x: -10521.560939540097, y: -1274.5943062483786, z: 39.89749926004446},
     ];
+
+    //this.wanderNodes = [
+    //  { x: -10559, y: -1189, z: 28 },
+    //  { x: -14354.0, y: 518.0, z: 22.0 }, // Booty bay
+    //  { x: -4651.0, y: -3316.0, z: 296.0 }, // Stonewrought Dom
+    //];
   }
 
   get position() {
@@ -266,7 +272,8 @@ class Unit extends Entity {
 
     // Normalize direction and move towards target
     direction.normalize();
-    this.spell.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+    //this.spell.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+    this.spell.position.add(direction.multiplyScalar(this.moveSpeed*3 * delta));
     this.emit('position:change', this);
   }
 
@@ -298,6 +305,11 @@ class Unit extends Entity {
     //this.view.translateX(this.moveSpeed * delta);
     //this.emit('position:change', this);
     this.moveForwardIfPathExists(delta);
+  }
+
+  teleportTo(pos) {
+    this.view.position.copy(pos);
+    this.emit('position:change', this);
   }
 
   printPositionInfo(delta) {
@@ -333,7 +345,8 @@ class Unit extends Entity {
     }
 
     //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(3.0)}&collisionHeight=${encodeURIComponent(5.0)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -357,11 +370,13 @@ class Unit extends Entity {
         if (pathPoints.length > 0) {
           const lastPoint = pathPoints[pathPoints.length - 1];
           if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
-            // Don't validate Z
-            //Math.abs(lastPoint.y - targetNode.y) > epsilon ||
-            //Math.abs(lastPoint.z - targetNode.z) > epsilon) {
-            Math.abs(lastPoint.y - targetNode.y) > epsilon) {
+            // Less strict validation of Z in case of model height and when
+            // wrong map is used z might be -500...
+            Math.abs(lastPoint.y - targetNode.y) > epsilon ||
+            Math.abs(lastPoint.z - targetNode.z) > 30.0) {
             console.log("Failed to find path to destination...");
+            console.log("lastPoint: " + lastPoint.x + ", " + lastPoint.y + ", " + lastPoint.z);
+            console.log("targetNode: " + targetNode.x + ", " + targetNode.y + ", " + targetNode.z);
             this.moveInPathRequested = false;
             return;
           }
@@ -443,7 +458,7 @@ class Unit extends Entity {
     //};
 
     //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(forwardPosition.x)}&endY=${encodeURIComponent(forwardPosition.y)}&endZ=${encodeURIComponent(forwardPosition.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}`;
+    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(5.0)}&collisionHeight=${encodeURIComponent(5.0)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -470,7 +485,7 @@ class Unit extends Entity {
           var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
           var distance = direction.length();
           //console.log("DIST: " + distance);
-          if (distance < 2) {
+          if (distance < 0.01) {
             // Got same position...
             return;
           }
@@ -478,8 +493,7 @@ class Unit extends Entity {
           // Normalize direction and move towards target
           direction.normalize();
           //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
-          //this.view.position.copy(this.position);
-          //this.view.position.add(direction.multiplyScalar((this.moveSpeed/4) * delta));
+          //this.view.position.copy(nextPoint);
           this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
 
           this.emit('position:change', this);

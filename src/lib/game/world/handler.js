@@ -49,10 +49,12 @@ class WorldHandler extends EventEmitter {
     this.playertwo.targetunit = this.player;
     // Map
     this.player.mapId = 0;
-    this.playertwo.mapId = 1;
+    this.playertwo.mapId = 0;
 
-    this.player.worldport(0, -10559, -1189, 28); // Darkshire (Eastern Kingdoms)
-    //this.player.worldport(0, -14354, 518, 22); // Booty Bay (Eastern Kingdoms)
+    //this.player.worldport(1, -614.7, -4335, 40.4); // Durotar testing
+
+    //this.player.worldport(0, -10559, -1189, 28); // Darkshire (Eastern Kingdoms)
+    this.player.worldport(0, -14354, 518, 22); // Booty Bay (Eastern Kingdoms)
     //this.player.worldport(0, -4651, -3316, 296); // Stonewrought Dam (Eastern Kingdoms)
     //this.player.worldport(0, -4981.25, -881.542, 502.66); // Ironforge (Eastern Kingdoms)
     //this.player.worldport(1, 9947, 2557, 1316); // Darnassus (Kalimdor)
