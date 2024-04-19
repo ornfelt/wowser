@@ -163,9 +163,11 @@ class Controls extends React.Component {
       }
 
       if (key.isPressed('c')) {
-        //unit.spell.despawn();
-        unit.castSpell();
-        unit.isCasting = true;
+        if (unit.mapId === unit.targetunit.mapId) {
+          //unit.spell.despawn();
+          unit.castSpell();
+          unit.isCasting = true;
+        }
       }
 
       if (unit.isCasting) {
@@ -173,8 +175,10 @@ class Controls extends React.Component {
       }
 
       if (key.isPressed('t')) {
-        unit.targetunit.castSpell();
-        unit.targetunit.isCasting = true;
+        if (unit.mapId === unit.targetunit.mapId) {
+          unit.targetunit.castSpell();
+          unit.targetunit.isCasting = true;
+        }
       }
 
       if (unit.targetunit.isCasting) {
