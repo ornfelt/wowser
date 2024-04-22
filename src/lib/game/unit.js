@@ -23,12 +23,19 @@ class Unit extends Entity {
 
     this.rotateSpeed = 2;
     this.moveSpeed = 10;
+    //this.gravity = -9.81; // m/s^2
+    this.gravity = -25.0;
+    this.jumpSpeed = 10;
+    this.jumpPeak = 4;
+    this.originalZ = 0.0;
+    this.currentJumpVelocity = 0;
 
     this._view = new THREE.Group();
 
     this._displayID = 0;
     this._model = null;
 
+    this.isJumping = false;
     this.isMoving = false;
     this.isInBetweenMovement = false;
     this.restTime = 0;
@@ -37,6 +44,7 @@ class Unit extends Entity {
     this.isCasting = false;
     this.castTick = 0;
     this.loader = new Loader();
+    this.usePhysics = true;
 
     this.wanderNodes = [
       { x: -10559, y: -1189, z: 28 },
@@ -195,6 +203,24 @@ class Unit extends Entity {
     }
   }
 
+  playJumpAnimation() {
+    var index;
+    if (this._displayID === 999999) {
+      index = 0
+    } else if (this._displayID === 24978) {
+      index = 2;
+    } else {
+      //index = 40; // Cool sword swing spin
+      //index = 35; // lol falling
+      index = 32;
+    }
+    if (this._model && this.currentAnimation !== index) {
+      this._model.animations.stopAnimation(this.currentAnimation);
+      this._model.animations.playAnimation(index);
+      this.currentAnimation = index;
+    }
+  }
+
   playIdleAnimation() {
     var index;
     if (this._displayID === 999999) {
@@ -212,6 +238,8 @@ class Unit extends Entity {
   }
 
   playMoveForwardAnimation() {
+    if (this.isJumping)
+      return;
     var index;
     if (this._displayID === 999999) {
       index = 0
@@ -291,7 +319,46 @@ class Unit extends Entity {
   }
 
   ascend(delta) {
-    this.view.translateZ(this.moveSpeed * delta);
+    if (this.usePhysics) {
+      if (!this.isJumping) {
+        this.isJumping = true;
+        this.originalZ = this.view.position.z;
+        this.currentJumpVelocity = this.jumpSpeed;
+        this.updateJumpPosition(delta);
+      }
+    } else {
+      this.view.translateZ(this.moveSpeed * delta);
+      this.emit('position:change', this);
+    }
+  }
+
+  updateJumpPosition(delta) {
+    if (this.isMovingForward) {
+      //this.jumpSpeed = 20;
+    } else {
+      //this.jumpPeak = 3;
+      this.gravity = -25.0;
+      this.jumpPeak = 4;
+      //this.jumpSpeed = 10;
+    }
+    this.view.position.z += this.currentJumpVelocity * delta;
+    this.currentJumpVelocity += this.gravity * delta;
+
+    if (this.currentJumpVelocity <= 0 && this.view.position.z >= this.originalZ + this.jumpPeak) {
+      this.currentJumpVelocity = -this.jumpSpeed;
+    }
+
+    if (this.view.position.z <= this.originalZ) {
+      this.view.position.z = this.originalZ;
+      this.isJumping = false;
+      this.jumpingForward = false;
+      if (this.isMoving) {
+        this.playMoveForwardAnimation();
+      } else {
+        this.playIdleAnimation();
+      }
+    }
+
     this.emit('position:change', this);
   }
 
@@ -302,9 +369,12 @@ class Unit extends Entity {
 
   moveForward(delta) {
     //this.printPositionInfo(delta);
-    //this.view.translateX(this.moveSpeed * delta);
-    //this.emit('position:change', this);
-    this.moveForwardIfPathExists(delta);
+    if (this.usePhysics) {
+      this.moveForwardIfPathExists(delta);
+    } else {
+      this.view.translateX(this.moveSpeed * delta);
+      this.emit('position:change', this);
+    }
   }
 
   teleportTo(pos) {
@@ -346,7 +416,7 @@ class Unit extends Entity {
 
     //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
     //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(3.0)}&collisionHeight=${encodeURIComponent(5.0)}`;
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(3.0)}&collisionHeight=${encodeURIComponent(5.0)}&dist=${encodeURIComponent(1.0)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -449,8 +519,8 @@ class Unit extends Entity {
   }
 
   moveForwardIfPathExists(delta) {
-    //const forwardDistance = 10.0;
     const angle = this.view.rotation.z;
+    //const forwardDistance = 10.0;
     //const forwardPosition = {
     //  x: this.position.x + forwardDistance * Math.cos(angle),
     //  y: this.position.y + forwardDistance * Math.sin(angle),
@@ -458,7 +528,11 @@ class Unit extends Entity {
     //};
 
     //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(forwardPosition.x)}&endY=${encodeURIComponent(forwardPosition.y)}&endZ=${encodeURIComponent(forwardPosition.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(5.0)}&collisionHeight=${encodeURIComponent(5.0)}`;
+    var travelDist = 0.5;
+    //var travelDist = 1;
+    //if (this.isJumping)
+    //  travelDist = 3;
+    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(5.0)}&collisionHeight=${encodeURIComponent(15.0)}&dist=${encodeURIComponent(travelDist)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -481,12 +555,16 @@ class Unit extends Entity {
           //const nextPoint = pathPoints[1]; // This is useful if using calculatePath (with the commented query above)
           const nextPoint = pathPoints[0];
           //console.log("nextPoint x: " + nextPoint.x);
+
           // Calculate direction to target
-          var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
+          //var direction = new THREE.Vector3().subVectors(nextPoint, this.position);
+          var direction = new THREE.Vector3().subVectors(nextPoint, this.view.position);
           var distance = direction.length();
-          //console.log("DIST: " + distance);
           if (distance < 0.01) {
             // Got same position...
+            //console.log("CAN'T MOVE FORWARD: " + distance + ", angle: " + angle);
+            //console.log("curr pos x: " + this.position.x + ", y: " + this.position.y + ", z: " + this.position.z);
+            //console.log("NEXTPOINT x: " + nextPoint.x + ", y: " + nextPoint.y + ", z: " + nextPoint.z);
             return;
           }
 
@@ -495,8 +573,14 @@ class Unit extends Entity {
           //this.position.add(direction.multiplyScalar(this.moveSpeed * delta));
           //this.view.position.copy(nextPoint);
           this.view.position.add(direction.multiplyScalar(this.moveSpeed * delta));
+          if (this.isJumping) {
+            this.originalZ = nextPoint.z;
+            this.view.position.z += this.currentJumpVelocity * delta;
+          }
 
-          this.emit('position:change', this);
+          if (!this.isJumping) {
+            this.emit('position:change', this);
+          }
         }
       })
       .catch(error => {

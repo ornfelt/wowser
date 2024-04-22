@@ -41,7 +41,8 @@ class Controls extends React.Component {
     this.zoomScale = Math.pow(0.95, this.zoomSpeed);
 
     // Zoom distance limits
-    this.minDistance = 6;
+    //this.minDistance = 6;
+    this.minDistance = 4;
     this.maxDistance = 500;
 
     // Vertical orbit limits
@@ -91,20 +92,34 @@ class Controls extends React.Component {
 
     if (this.unit) {
       if (key.isPressed('up') || key.isPressed('w')) {
-        anyMovementKey = true;
-        if (!unit.isMoving) {
-          unit.isMoving = true;
-          //if (unit.displayID === 24978)
-          //  unit.playAnimationByIndex(11);
-          //else
-          //  unit.playAnimationByIndex(0);
-          unit.playMoveForwardAnimation();
+        unit.isMovingForward = true;
+          anyMovementKey = true;
+        if (!unit.isJumping) {
+          if (!unit.isMoving) {
+            unit.isMoving = true;
+            unit.playMoveForwardAnimation();
+          }
         }
         unit.moveForward(delta);
+      } else {
+        unit.isMovingForward = false;
+      }
+
+      if (key.isPressed('space')) {
+        unit.ascend(delta);
+        //anyMovementKey = true;
+        unit.playJumpAnimation();
+        //if (!unit.isMoving) {
+        //  unit.isMoving = true;
+        //  //unit.playAnimationByIndex(13);
+        //}
+      }
+
+      if (unit.isJumping) {
+        unit.updateJumpPosition(delta);
       }
 
       if (key.isPressed('down') || key.isPressed('s')) {
-      //if (key.isPressed('down')) {
         anyMovementKey = true;
         if (!unit.isMoving) {
           unit.isMoving = true;
@@ -137,6 +152,17 @@ class Controls extends React.Component {
         if (!unit.moveInPathRequested) {
           unit.moveInPath(unit.targetunit.position);
           unit.moveInPathRequested = true;
+        }
+      }
+
+      if (key.isPressed('6')) {
+        //unit.usePhysics = !unit.usePhysics;
+        if (unit.usePhysics) {
+          unit.usePhysics = false;
+          unit.moveSpeed = 40;
+        } else {
+          unit.usePhysics = true;
+          unit.moveSpeed = 10;
         }
       }
 
@@ -203,15 +229,6 @@ class Controls extends React.Component {
         unit.strafeRight(delta);
       }
 
-      if (key.isPressed('space')) {
-        unit.ascend(delta);
-        anyMovementKey = true;
-        if (!unit.isMoving) {
-          unit.isMoving = true;
-          unit.playAnimationByIndex(13);
-        }
-      }
-
       if (key.isPressed('x')) {
       //if (key.isPressed('s')) {
         unit.descend(delta);
@@ -233,7 +250,7 @@ class Controls extends React.Component {
       if (!anyMovementKey && unit.isMoving) {
         unit.isInBetweenMovement = true;
       }
-      if (!anyMovementKey && unit.isInBetweenMovement) {
+      if (!anyMovementKey && unit.isInBetweenMovement && !unit.isJumping) {
         //if (unit.displayID === 24978) {
         //  unit.playAnimationByIndex(4);
         //} else {
