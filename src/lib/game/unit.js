@@ -394,29 +394,94 @@ class Unit extends Entity {
     console.log("x: " + forwardPosition.x + ", y: " + forwardPosition.y + ", z: " + forwardPosition.z);
   }
 
-  startWandering() {
+  startWandering(useSql) {
     if (this.isMovingInPath) return;
 
-    // Find the closest wander node
-    const closestNode = this.wanderNodes.reduce((prev, curr) => {
-      const prevDistance = this.position.distanceTo(new THREE.Vector3(prev.x, prev.y, prev.z));
-      const currDistance = this.position.distanceTo(new THREE.Vector3(curr.x, curr.y, curr.z));
-      return (prevDistance < currDistance) ? prev : curr;
-    });
+    this.useSql = useSql;
 
-    // Start moving towards the closest node
-    this.currentWanderIndex = this.wanderNodes.indexOf(closestNode);
-    this.moveInPath(closestNode);
+    if (!useSql) {
+      // Find the closest wander node from static list
+      const closestNode = this.wanderNodes.reduce((prev, curr) => {
+        const prevDistance = this.position.distanceTo(new THREE.Vector3(prev.x, prev.y, prev.z));
+        const currDistance = this.position.distanceTo(new THREE.Vector3(curr.x, curr.y, curr.z));
+        return (prevDistance < currDistance) ? prev : curr;
+      });
+
+      // Start moving towards the closest node
+      this.currentWanderIndex = this.wanderNodes.indexOf(closestNode);
+      this.moveInPath(closestNode);
+    } else {
+      // Use sql instead:
+      this.getClosestNode().then(nodePosition => {
+        if (nodePosition) {
+          console.log('Closest node:', nodePosition);
+          this.moveInPath(nodePosition);
+        } else {
+          console.log('No node was found or there was an error');
+        }
+      });
+    }
   }
 
-  moveInPath(targetNode) {
+  getClosestNode() {
+    const query = `getClosestNode?x=${encodeURIComponent(this.position.x)}&y=${encodeURIComponent(this.position.y)}&z=${encodeURIComponent(this.position.z)}`;
+    // Return the Promise from this method
+    return this.loader.load(query)
+      .then(response => {
+        if (!response) {
+          console.log("got null node!");
+          return null;
+        }
+        const nodeData = JSON.parse(new TextDecoder().decode(response));
+        if (nodeData) {
+          this.nodeIndex = nodeData.id;
+          //console.log("Linked node:", {...nodeData});
+          return { x: nodeData.x, y: nodeData.y, z: nodeData.z };
+        }
+        return null;
+      })
+      .catch(error => {
+        console.error("Failed to load closest node:", error);
+        return null;
+      });
+  }
+
+  getNewNode() {
+    const query = `getClosestNode?node_id=${encodeURIComponent(this.nodeIndex)}`;
+    return this.loader.load(query)
+      .then(response => {
+        if (!response) {
+          console.log("GOT NULL NODE!");
+          return null;
+        }
+        //const pathString = new TextDecoder().decode(response);
+        //console.log("Linked node: " + pathString);
+        const nodeData = JSON.parse(new TextDecoder().decode(response));
+        //console.log("Linked node: " + JSON.stringify(nodeData, null, 2));
+        //console.log("Linked node:", nodeData);
+        //console.log("Linked node:", {...nodeData});
+        //const { id, mapid, x, y, z, links } = nodeData;
+        //console.log(`Linked node: id=${id}, mapid=${mapid}, x=${x}, y=${y}, z=${z}, links=${links}`);
+        this.nodeIndex = nodeData.id;
+        if (nodeData) {
+          this.nodeIndex = nodeData.id;
+          return { x: nodeData.x, y: nodeData.y, z: nodeData.z };
+        }
+        return null;
+      })
+      .catch(error => {
+        //console.error("Failed to load closest node: "+ error);
+        return null;
+      });
+  }
+
+  moveInPath(targetNode, forceDest=false) {
     if (this.isMovingInPath) {
       return;
     }
 
-    //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(this.targetunit.position.x)}&endY=${encodeURIComponent(this.targetunit.position.y)}&endZ=${encodeURIComponent(this.targetunit.position.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    //const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false`;
-    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=false&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(3.0)}&collisionHeight=${encodeURIComponent(5.0)}&dist=${encodeURIComponent(1.0)}`;
+    const straightPathValue = forceDest ? "true" : "false";
+    const query = `calculatePath?startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&endX=${encodeURIComponent(targetNode.x)}&endY=${encodeURIComponent(targetNode.y)}&endZ=${encodeURIComponent(targetNode.z)}&mapId=${encodeURIComponent(this.mapId)}&straightPath=${straightPathValue}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(3.0)}&collisionHeight=${encodeURIComponent(5.0)}&dist=${encodeURIComponent(1.0)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -425,7 +490,7 @@ class Unit extends Entity {
           return;
         }
         const pathString = new TextDecoder().decode(response);
-        //console.log("GOT PATHSTRING: " + pathString);
+        //console.log("Got pathString: " + pathString);
         //const pathPoints = pathString.split(";").map(point => {
         //  const [X, Y, Z] = point.split(",").map(Number);
         //  return { X, Y, Z };
@@ -435,24 +500,45 @@ class Unit extends Entity {
           const [x, y, z] = point.split(",").map(Number);
           return { x, y, z }; // Use lowercase property names
         });
+        console.log("Path length: " + pathPoints.length);
 
-        const epsilon = 0.1; // Tolerance for floating-point comparison
-        if (pathPoints.length > 0) {
+        //const epsilon = 0.1; // Tolerance for floating-point comparison
+        const epsilon = 30.0; // Tolerance for floating-point comparison
+        if (pathPoints.length > 2) {
           const lastPoint = pathPoints[pathPoints.length - 1];
-          if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
-            // Less strict validation of Z in case of model height and when
-            // wrong map is used z might be -500...
-            Math.abs(lastPoint.y - targetNode.y) > epsilon ||
-            Math.abs(lastPoint.z - targetNode.z) > 30.0) {
-            console.log("Failed to find path to destination...");
-            console.log("lastPoint: " + lastPoint.x + ", " + lastPoint.y + ", " + lastPoint.z);
-            console.log("targetNode: " + targetNode.x + ", " + targetNode.y + ", " + targetNode.z);
-            this.moveInPathRequested = false;
-            return;
-          }
+          var direction = new THREE.Vector3().subVectors(lastPoint, this.position);
+          var distance = direction.length();
+          //console.log("Distance to next node: " + distance);
+
+          //if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
+          //  // Less strict validation of Z in case of model height and when
+          //  // wrong map is used z might be -500...
+          //  Math.abs(lastPoint.y - targetNode.y) > epsilon ||
+          //  Math.abs(lastPoint.z - targetNode.z) > 30.0) {
+          //  console.log("Failed to find path to destination...");
+          //  console.log("lastPoint: " + lastPoint.x + ", " + lastPoint.y + ", " + lastPoint.z);
+          //  console.log("targetNode: " + targetNode.x + ", " + targetNode.y + ", " + targetNode.z);
+          //  this.moveInPathRequested = false;
+          //  return;
+          //}
         } else {
-          console.log("Path points are empty.");
+          console.log("Path points are empty / too short: " + pathPoints.length);
           this.moveInPathRequested = false;
+          this.isMovingInPath = false;
+          this.playIdleAnimation();
+          if (this.useSql) {
+            const lastPoint = pathPoints[pathPoints.length - 1];
+            var direction = new THREE.Vector3().subVectors(lastPoint, this.position);
+            var distance = direction.length();
+            console.log("Distance to next node would've been: " + distance);
+            this.getNewNode().then(nodePosition => {
+              if (nodePosition) {
+                this.moveInPath(nodePosition);
+              } else {
+                console.log('No node was found or there was an error');
+              }
+            });
+          }
           return;
         }
 
@@ -490,10 +576,20 @@ class Unit extends Entity {
         //console.log("Reached destination point!");
 
         if (this.isWandering) {
-          this.currentWanderIndex = (this.currentWanderIndex + 1) % this.wanderNodes.length;
-          //console.log("new wander node selected: " + this.currentWanderIndex);
-          const nextNode = this.wanderNodes[this.currentWanderIndex];
-          this.moveInPath(nextNode);
+          if (this.useSql) {
+            this.getNewNode().then(nodePosition => {
+              if (nodePosition) {
+                this.moveInPath(nodePosition);
+              } else {
+                console.log('No node was found or there was an error');
+              }
+            });
+          } else {
+            this.currentWanderIndex = (this.currentWanderIndex + 1) % this.wanderNodes.length;
+            //console.log("new wander node selected: " + this.currentWanderIndex);
+            const nextNode = this.wanderNodes[this.currentWanderIndex];
+            this.moveInPath(nextNode);
+          }
         }
 
         return;
@@ -532,7 +628,7 @@ class Unit extends Entity {
     //var travelDist = 1;
     //if (this.isJumping)
     //  travelDist = 3;
-    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(5.0)}&collisionHeight=${encodeURIComponent(15.0)}&dist=${encodeURIComponent(travelDist)}`;
+    const query = `calculatePath?mapId=${encodeURIComponent(this.mapId)}&startX=${encodeURIComponent(this.position.x)}&startY=${encodeURIComponent(this.position.y)}&startZ=${encodeURIComponent(this.position.z)}&angle=${encodeURIComponent(angle)}&hoverHeight=${encodeURIComponent(0.0)}&objectSize=${encodeURIComponent(5.0)}&collisionHeight=${encodeURIComponent(5.0)}&dist=${encodeURIComponent(travelDist)}`;
     this.loader.load(query)
       .then(response => {
         if (!response) {
@@ -540,7 +636,7 @@ class Unit extends Entity {
           return;
         }
         const pathString = new TextDecoder().decode(response);
-        //console.log("GOT PATHSTRING: " + pathString);
+        //console.log("Got pathString: " + pathString);
         if (pathString.length < 2) {
           console.log("Failed to find path to destination...");
           return;

@@ -136,7 +136,7 @@ class Controls extends React.Component {
         if (!unit.moveInPathRequested) {
           unit.moveInPathRequested = true;
           unit.isWandering = true;
-          unit.startWandering();
+          unit.startWandering(true);
         }
       }
 
@@ -144,7 +144,8 @@ class Controls extends React.Component {
         if (!unit.targetunit.moveInPathRequested) {
           unit.targetunit.moveInPathRequested = true;
           unit.targetunit.isWandering = true;
-          unit.targetunit.startWandering();
+          //unit.targetunit.startWandering(false);
+          unit.targetunit.startWandering(true); // Use sql
         }
       }
 
@@ -181,6 +182,7 @@ class Controls extends React.Component {
       }
 
       if(unit.isMovingInPath) {
+        //unit.updatePositionInPath(delta, false);
         unit.updatePositionInPath(delta);
       }
 
