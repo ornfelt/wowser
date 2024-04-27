@@ -85,9 +85,6 @@ class Controls extends React.Component {
   update() {
     const unit = this.unit;
 
-    let debounceTimeout;
-    const debounceInterval = 300;
-
     // TODO: Get rid of this delta retrieval call
     const delta = this.clock.getDelta();
 
@@ -177,6 +174,7 @@ class Controls extends React.Component {
         unit.targetunit.teleportTo(unit.position);
 
         // Also reset values...
+        // TODO: shouldn't really be needed...
         if (unit.targetunit.moveInPathRequested)
           console.log("moveinpathrequested still true...");
         unit.targetunit.moveInPathRequested = false;
@@ -214,6 +212,8 @@ class Controls extends React.Component {
         if (unit.mapId === unit.targetunit.mapId) {
           //unit.spell.despawn();
           //unit.castSpell();
+          // TODO: add 1-5 buttons for 5 spells...
+          // Also add target frame and move health bar at hit?
           unit.castRandomSpell();
           unit.isCasting = true;
         }
