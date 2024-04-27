@@ -61,11 +61,11 @@ class WorldMap extends THREE.Group {
       this.loadChunkByIndex(index);
     });
 
-    this.chunks.forEach((_chunk, index) => {
-      if (indices.indexOf(index) === -1) {
-        this.unloadChunkByIndex(index);
-      }
-    });
+    //this.chunks.forEach((_chunk, index) => {
+    //  if (indices.indexOf(index) === -1) {
+    //    this.unloadChunkByIndex(index);
+    //  }
+    //});
   }
 
   chunkIndicesAround(chunkX, chunkY, radius) {

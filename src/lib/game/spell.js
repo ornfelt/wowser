@@ -2,7 +2,8 @@ import Unit from './unit';
 
 class Spell extends Unit {
 
-  constructor() {
+  //constructor() {
+  constructor(spellFile = "spells\\meteor_ball_missile.m2") {
     super();
 
     this.name = 'Spell';
@@ -11,7 +12,10 @@ class Spell extends Unit {
 
     this.target = null;
 
+    //this.spellId = spellId;
+    this.spellFile = spellFile;
     this.displayID = 999999;
+
     //this.displayID = null;
     this.mapID = null;
   }

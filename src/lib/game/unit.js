@@ -66,6 +66,10 @@ class Unit extends Entity {
     return this._view.position;
   }
 
+  setNewDisplayID(displayID) {
+    this.displayID = displayID;
+  }
+
   get displayID() {
     return this._displayID;
   }
@@ -78,38 +82,7 @@ class Unit extends Entity {
     // Spells
     if (displayID === 999999) {
           this._displayID = displayID;
-          //M2Blueprint.load("spells\\frostbolt.m2").then((m2) => {
-          M2Blueprint.load("spells\\meteor_ball_missile.m2").then((m2) => { // COOL
-          //M2Blueprint.load("spells\\pyroblast_missile.m2").then((m2) => {
-          //M2Blueprint.load("spells\\blizzard_impact_base.m2").then((m2) => {
-          //M2Blueprint.load("spells\\shaman_thunder.m2").then((m2) => {
-          //M2Blueprint.load("spells\\chainlightning_fel_impact_chest.m2").then((m2) => {
-          //M2Blueprint.load("spells\\chainlightning_impact_chest.m2").then((m2) => {
-          //M2Blueprint.load("spells\\ice_missile_high.m2").then((m2) => {
-          //M2Blueprint.load("spells\\lightningbolt_missile.m2").then((m2) => {
-          //M2Blueprint.load("spells\\missile_wave_arcane.m2").then((m2) => {
-          //M2Blueprint.load("spells\\missile_wave_fire.m2").then((m2) => {
-          //M2Blueprint.load("spells\\icespike_impact_new.m2").then((m2) => {
-          //M2Blueprint.load("spells\\groundspike_impact.m2").then((m2) => {
-          //M2Blueprint.load("spells\\rag_firenova_area.m2").then((m2) => {
-          //M2Blueprint.load("spells\\arcaneexplosion_base.m2").then((m2) => {
-          //M2Blueprint.load("spells\\waterbolt_missile_low.m2").then((m2) => {
-          //M2Blueprint.load("spells\\fire_form_precast.m2").then((m2) => {
-          //M2Blueprint.load("spells\\fireball_missile_high.m2").then((m2) => {
-          //M2Blueprint.load("spells\\fireball_blue_missile_high.m2").then((m2) => {
-
-          //M2Blueprint.load("spells\\fel_fireball_missile_high.m2").then((m2) => {
-          //M2Blueprint.load("spells\\fel_firebolt_missile_low.m2").then((m2) => {
-          //M2Blueprint.load("spells\\fel_pyroblast_missile.m2").then((m2) => {
-          //M2Blueprint.load("spells\\firebolt_missile_low.m2").then((m2) => {
-          //M2Blueprint.load("spells\\firebomb_missle.m2").then((m2) => { // LIKE A SUN
-          //M2Blueprint.load("spells\\arcanebomb_missle.m2").then((m2) => {
-          //M2Blueprint.load("spells\\missile_bomb.m2").then((m2) => { // small...
-          //M2Blueprint.load("spells\\firenova_area.m2").then((m2) => {
-          //M2Blueprint.load("spells\\ice_nova.m2").then((m2) => { // CRAZY BIG
-          //M2Blueprint.load("spells\\lightning_ring_nova.m2").then((m2) => {
-          //M2Blueprint.load("spells\\shadow_nova_area.m2").then((m2) => {
-          //M2Blueprint.load("spells\\water_nova.m2").then((m2) => {
+          M2Blueprint.load(this.spellFile).then((m2) => {
 
           this.model = m2;
           this._model.visible = false;
@@ -128,6 +101,9 @@ class Unit extends Entity {
           M2Blueprint.load(this.modelData.file).then((m2) => {
             m2.displayInfo = this.displayInfo;
             this.model = m2;
+            if (this.isHideAtStart) {
+              this._model.visible = false;
+            }
           });
         });
       });
@@ -285,12 +261,40 @@ class Unit extends Entity {
       this.spell.targetPosition = this.targetunit.position;
   }
 
+  castRandomSpell() {
+    if (this.isCasting || this.targetunit.isCasting) {
+        return;
+    }
+
+    // Check if there are any spells to cast
+    if (this.spell_list.length === 0) {
+        console.error("No spells available to cast.");
+        return;
+    }
+
+    // Select a random spell from the list
+    const randomIndex = Math.floor(Math.random() * this.spell_list.length);
+    const randomSpell = this.spell_list[randomIndex];
+    this.spell = randomSpell;
+
+    // Proceed to set up the spell properties and make it visible
+    randomSpell.position.copy(this.position); // Assuming each spell has a position property
+    randomSpell.view.rotation.z = this.view.rotation.z; // Assuming each spell has a view property
+    randomSpell.setVisible(true); // Assuming each spell has a setVisible method
+
+    // Setting the target position of the spell
+    randomSpell.targetPosition = this.targetunit.position;
+  }
+
   updateSpellPosition(delta) {
     if (!this.isCasting) return;
 
     // Calculate direction to target
     let direction = new THREE.Vector3().subVectors(this.spell.targetPosition, this.spell.position);
     let distance = direction.length();
+
+    const angle = Math.atan2(direction.y, direction.x);
+    this.spell.view.rotation.z = angle;
 
     if (distance < 1) {
       this.isCasting = false;
@@ -504,10 +508,12 @@ class Unit extends Entity {
 
         //const epsilon = 0.1; // Tolerance for floating-point comparison
         const epsilon = 30.0; // Tolerance for floating-point comparison
+        var direction;
+        var distance;
         if (pathPoints.length > 2) {
           const lastPoint = pathPoints[pathPoints.length - 1];
-          var direction = new THREE.Vector3().subVectors(lastPoint, this.position);
-          var distance = direction.length();
+          direction = new THREE.Vector3().subVectors(lastPoint, this.position);
+          distance = direction.length();
           //console.log("Distance to next node: " + distance);
 
           //if (Math.abs(lastPoint.x - targetNode.x) > epsilon ||
@@ -528,8 +534,8 @@ class Unit extends Entity {
           this.playIdleAnimation();
           if (this.useSql) {
             const lastPoint = pathPoints[pathPoints.length - 1];
-            var direction = new THREE.Vector3().subVectors(lastPoint, this.position);
-            var distance = direction.length();
+            direction = new THREE.Vector3().subVectors(lastPoint, this.position);
+            distance = direction.length();
             console.log("Distance to next node would've been: " + distance);
             this.getNewNode().then(nodePosition => {
               if (nodePosition) {

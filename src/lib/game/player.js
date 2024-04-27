@@ -11,11 +11,17 @@ class Player extends Unit {
 
     this.target = null;
 
-    //this.displayID = 24978; // Penguin
-    this.displayID = 7550; // Skeleton
-    //this.displayID = 5812; // Defias drone
-    //this.displayID = 2605; // High inquisitor fairbanks
-    //this.displayID = 21137; // Illidan
+    this.displayIdsList = [
+      7550, // Skeleton
+      24978, // Penguin
+      21137 // Illidan
+      //5812, // Defias drone
+      //2605, // High inquisitor fairbanks
+    ];
+
+    this.currentDisplayIndex = 0;
+    this.currentTargetIndex = 0;
+    this.displayID = this.displayIdsList[this.currentDisplayIndex]; // Skeleton
     this.mapID = null;
   }
 

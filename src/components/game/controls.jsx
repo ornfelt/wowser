@@ -85,6 +85,9 @@ class Controls extends React.Component {
   update() {
     const unit = this.unit;
 
+    let debounceTimeout;
+    const debounceInterval = 300;
+
     // TODO: Get rid of this delta retrieval call
     const delta = this.clock.getDelta();
 
@@ -172,6 +175,17 @@ class Controls extends React.Component {
       }
       if (key.isPressed('9')) {
         unit.targetunit.teleportTo(unit.position);
+
+        // Also reset values...
+        if (unit.targetunit.moveInPathRequested)
+          console.log("moveinpathrequested still true...");
+        unit.targetunit.moveInPathRequested = false;
+        if (unit.targetunit.isWandering)
+          console.log("isWandering still true...");
+        unit.targetunit.isWandering = false;
+        if (unit.targetunit.isMovingInPath)
+          console.log("isMovingInPath still true...");
+        unit.targetunit.isMovingInPath = false;
       }
 
       if (key.isPressed('4')) {
@@ -186,16 +200,36 @@ class Controls extends React.Component {
         unit.updatePositionInPath(delta);
       }
 
-      if(unit.targetunit.isMovingInPath) {
-        unit.targetunit.updatePositionInPath(delta);
-      }
+      //if(unit.targetunit.isMovingInPath) {
+      //  unit.targetunit.updatePositionInPath(delta);
+      //}
+
+      unit.player_list.forEach(player => {
+        if (player.isMovingInPath) {
+          player.updatePositionInPath(delta);
+        }
+      });
 
       if (key.isPressed('c')) {
         if (unit.mapId === unit.targetunit.mapId) {
           //unit.spell.despawn();
-          unit.castSpell();
+          //unit.castSpell();
+          unit.castRandomSpell();
           unit.isCasting = true;
         }
+      }
+
+      if (key.isPressed('n')) {
+        unit.currentDisplayIndex = (unit.currentDisplayIndex + 1) % unit.displayIdsList.length; // Increment and wrap around
+        unit.setNewDisplayID(unit.displayIdsList[unit.currentDisplayIndex]);
+      }
+
+      if (key.isPressed('5')) {
+        //unit.targetunit.setVisible(false);
+        unit.currentTargetIndex = (unit.currentTargetIndex + 1) % unit.player_list.length;
+        unit.targetunit = unit.player_list[unit.currentTargetIndex];
+        //unit.targetunit.setVisible(true);
+        console.log("Switched to target index: " + unit.currentTargetIndex);
       }
 
       if (unit.isCasting) {

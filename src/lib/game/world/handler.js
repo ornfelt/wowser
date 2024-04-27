@@ -17,6 +17,9 @@ class WorldHandler extends EventEmitter {
     this.player.spell = this.spell;
     this.playertwo.spell = this.spell;
 
+    this.player_list = this.session.player_list;
+    this.spell_list = this.session.spell_list;
+
     this.scene = new THREE.Scene();
     this.scene.matrixAutoUpdate = false;
     this.map = null;
@@ -121,6 +124,33 @@ class WorldHandler extends EventEmitter {
     // Map
     this.player.mapId = spawnCoords[0];
     this.playertwo.mapId = spawnCoords[0];
+
+    // Set stuff for player and spell list
+    this.spell_list.forEach(spell => {
+      //console.log(`Spell created with file path: ${spell.filePath}`);
+      this.add(spell);
+      spell.on('map:change', this.changeMap);
+      spell.on('position:change', this.changePosition);
+      spell.worldport(...spawnCoords);
+    });
+
+    this.player_list.forEach(player => {
+      //console.log(`Player with Display ID ${player.displayID} created.`);
+      this.add(player);
+      player.on('map:change', this.changeMap);
+      player.on('position:change', this.changePosition);
+      player.worldport(...spawnCoords);
+      player.mapId = spawnCoords[0];
+      player.targetunit = this.player;
+      player.spell = this.spell;
+      //player.isHideAtStart = true;
+    });
+
+    this.player_list.push(this.playertwo);
+
+    this.player.spell_list = this.spell_list;
+    this.player.player_list = this.player_list;
+
   }
 
   add(entity) {
