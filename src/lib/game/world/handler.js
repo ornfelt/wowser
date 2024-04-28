@@ -132,6 +132,7 @@ class WorldHandler extends EventEmitter {
       spell.on('map:change', this.changeMap);
       spell.on('position:change', this.changePosition);
       spell.worldport(...spawnCoords);
+      spell.isCasting = false;
     });
 
     this.player_list.forEach(player => {
@@ -151,6 +152,7 @@ class WorldHandler extends EventEmitter {
     this.player.spell_list = this.spell_list;
     this.player.player_list = this.player_list;
 
+    //this.player.target = this.playertwo;
   }
 
   add(entity) {

@@ -15,26 +15,40 @@ class Portrait extends React.Component {
     target: PropTypes.bool
   };
 
+  //render() {
+  //  const unit = this.props.unit;
+  //  const className = classes('portrait', {
+  //    self: this.props.self,
+  //    target: this.props.target
+  //  });
+  //    // use <div instead of <portrait
+  //    //<portrait className={ className }>
+  //    //</portrait>
+  //  return (
+  //    <div className={ className }>
+  //      <div className="icon portrait"></div>
+  //      <header className="name">{ unit.name }</header>
+  //      <aside className="level">{ unit.level }</aside>
+  //      <div className="divider"></div>
+  //      <div className="health">{ unit.hp } / { unit.maxHp }</div>
+  //      <div className="mana">{ unit.mp } / { unit.maxMp }</div>
+  //    </div>
+  //  );
+  //}
+
   render() {
-    const unit = this.props.unit;
-    const className = classes('portrait', {
-      self: this.props.self,
-      target: this.props.target
-    });
-      // use <div instead of <portrait
-      //<portrait className={ className }>
-      //</portrait>
+    const { unit, self, target } = this.props;
+    const healthWidth = unit.hp / unit.maxHp * 115; // Calculate width based on health ratio
+    const className = classes('portrait', { self, target });
+
     return (
-      <div className={ className }>
+      <div className={className}>
         <div className="icon portrait"></div>
-
-        <header className="name">{ unit.name }</header>
-        <aside className="level">{ unit.level }</aside>
-
+        <header className="name">{unit.name}</header>
+        <aside className="level">{unit.level}</aside>
         <div className="divider"></div>
-
-        <div className="health">{ unit.hp } / { unit.maxHp }</div>
-        <div className="mana">{ unit.mp } / { unit.maxMp }</div>
+        <div className="health" style={{ width: `${healthWidth}px` }}>{unit.hp} / {unit.maxHp}</div>
+        <div className="mana">{unit.mp} / {unit.maxMp}</div>
       </div>
     );
   }

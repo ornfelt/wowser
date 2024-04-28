@@ -6,7 +6,7 @@ class PlayerTwo extends Unit {
   constructor(displayID = 19272) {
     super();
 
-    this.name = 'Player';
+    this.name = 'Player2';
     this.hp = this.hp;
     this.mp = this.mp;
 

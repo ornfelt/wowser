@@ -12,14 +12,15 @@ class Unit extends Entity {
     super();
 
     this.name = '<unknown>';
-    this.level = '?';
+    //this.level = '?';
+    this.level = '5';
     this.target = null;
 
-    this.maxHp = 0;
-    this.hp = 0;
+    this.maxHp = 100;
+    this.hp = 100;
 
-    this.maxMp = 0;
-    this.mp = 0;
+    this.maxMp = 100;
+    this.mp = 100;
 
     this.rotateSpeed = 2;
     this.moveSpeed = 10;
@@ -185,6 +186,9 @@ class Unit extends Entity {
       index = 0
     } else if (this._displayID === 24978) {
       index = 2;
+    } else if (this._displayID === 21137) {
+      //index = 12; // Huuge fly jump
+      index = 32;
     } else {
       //index = 40; // Cool sword swing spin
       //index = 35; // lol falling
@@ -203,6 +207,10 @@ class Unit extends Entity {
       index = 0
     } else if (this._displayID === 24978) {
       index = 4;
+    } else if (this._displayID === 21137) {
+      //index = 4; // Flying idle
+      //index = 6; // Cool kneel idle
+      index = 13; // Cool kneel idle
     } else {
       index = 2;
     }
@@ -221,6 +229,8 @@ class Unit extends Entity {
       index = 0
     } else if (this._displayID === 24978) {
       index = 11;
+    } else if (this._displayID === 21137) {
+      index = 15;
     } else {
       index = 0;
     }
@@ -248,17 +258,36 @@ class Unit extends Entity {
   }
 
   castSpell() {
-      if (this.isCasting || this.targetunit.isCasting) {
-        return;
-      }
+      //if (this.isCasting || this.targetunit.isCasting) {
+      //  return;
+      //}
       //this.spell.setVisible(!this.spell.getVisible());
       this.spell.position.copy(this.position);
       this.spell.view.rotation.z = this.view.rotation.z;
       this.spell.setVisible(true);
-      //this.spell.targetPosition = new THREE.Vector3(-10559, -1189, 28);
-      //this.spell.targetPosition = player2.position; // TODO
-      //this.setTargetPositionInFront(25);
+      //this.setTargetPositionInFront(25); // Old test code for casting spell forward
       this.spell.targetPosition = this.targetunit.position;
+  }
+
+  castSpellByIndex(idx) {
+    // TODO: should check if casting this specific spell (not any spell)
+    //if (this.isCasting || this.targetunit.isCasting) {
+    //    return;
+    //}
+
+    // Select a random spell from the list
+    const chosenSpell = this.spell_list[idx];
+    if (chosenSpell.isCasting || !this.target) {
+      return;
+    }
+    this.mp -= 5;
+    chosenSpell.isCasting = true;
+    this.spell = chosenSpell;
+
+    chosenSpell.position.copy(this.position);
+    chosenSpell.view.rotation.z = this.view.rotation.z;
+    chosenSpell.setVisible(true);
+    chosenSpell.targetPosition = this.targetunit.position;
   }
 
   castRandomSpell() {
@@ -266,23 +295,14 @@ class Unit extends Entity {
         return;
     }
 
-    // Check if there are any spells to cast
-    if (this.spell_list.length === 0) {
-        console.error("No spells available to cast.");
-        return;
-    }
-
-    // Select a random spell from the list
     const randomIndex = Math.floor(Math.random() * this.spell_list.length);
     const randomSpell = this.spell_list[randomIndex];
     this.spell = randomSpell;
 
-    // Proceed to set up the spell properties and make it visible
-    randomSpell.position.copy(this.position); // Assuming each spell has a position property
-    randomSpell.view.rotation.z = this.view.rotation.z; // Assuming each spell has a view property
-    randomSpell.setVisible(true); // Assuming each spell has a setVisible method
+    randomSpell.position.copy(this.position);
+    randomSpell.view.rotation.z = this.view.rotation.z;
+    randomSpell.setVisible(true);
 
-    // Setting the target position of the spell
     randomSpell.targetPosition = this.targetunit.position;
   }
 
@@ -297,8 +317,13 @@ class Unit extends Entity {
     this.spell.view.rotation.z = angle;
 
     if (distance < 1) {
-      this.isCasting = false;
+      //this.isCasting = false;
       this.stopCastSpell();
+      this.targetunit.hp -= 5;
+      if (this.targetunit.hp < 0) {
+        this.targetunit.hp = 0;
+      }
+      this.spell.isCasting = false;
       return;
     }
 

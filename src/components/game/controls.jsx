@@ -72,6 +72,11 @@ class Controls extends React.Component {
     this.element.addEventListener('DOMMouseScroll', this._onMouseWheel);
 
     this.update();
+
+    this.targetUpdated = false;
+    this.targetUpdatedCounter = 0;
+    this.displayIdUpdated = false;
+    this.displayIdUpdatedCounter = 0;
   }
 
   componentWillUnmount() {
@@ -140,7 +145,7 @@ class Controls extends React.Component {
         }
       }
 
-      if (key.isPressed('3')) {
+      if (key.isPressed('6')) {
         if (!unit.targetunit.moveInPathRequested) {
           unit.targetunit.moveInPathRequested = true;
           unit.targetunit.isWandering = true;
@@ -156,7 +161,7 @@ class Controls extends React.Component {
         }
       }
 
-      if (key.isPressed('6')) {
+      if (key.isPressed('8')) {
         //unit.usePhysics = !unit.usePhysics;
         if (unit.usePhysics) {
           unit.usePhysics = false;
@@ -170,8 +175,10 @@ class Controls extends React.Component {
       if (key.isPressed('0')) {
         unit.teleportTo(unit.targetunit.position);
       }
-      if (key.isPressed('9')) {
+      else if (key.isPressed('9')) {
         unit.targetunit.teleportTo(unit.position);
+        unit.targetunit.playIdleAnimation();
+        unit.targetunit.hp = 100;
 
         // Also reset values...
         // TODO: shouldn't really be needed...
@@ -186,7 +193,7 @@ class Controls extends React.Component {
         unit.targetunit.isMovingInPath = false;
       }
 
-      if (key.isPressed('4')) {
+      if (key.isPressed('7')) {
         if (!unit.targetunit.moveInPathRequested) {
           unit.targetunit.moveInPath(unit.position);
           unit.targetunit.moveInPathRequested = true;
@@ -210,33 +217,77 @@ class Controls extends React.Component {
 
       if (key.isPressed('c')) {
         if (unit.mapId === unit.targetunit.mapId) {
-          //unit.spell.despawn();
+          //unit.spell.despawn(); // Old
           //unit.castSpell();
-          // TODO: add 1-5 buttons for 5 spells...
-          // Also add target frame and move health bar at hit?
-          unit.castRandomSpell();
+          unit.castSpellByIndex(0);
+          //unit.castRandomSpell();
           unit.isCasting = true;
         }
       }
 
-      if (key.isPressed('n')) {
-        unit.currentDisplayIndex = (unit.currentDisplayIndex + 1) % unit.displayIdsList.length; // Increment and wrap around
-        unit.setNewDisplayID(unit.displayIdsList[unit.currentDisplayIndex]);
+      if (key.isPressed('1')) {
+          unit.castSpellByIndex(1);
+          unit.isCasting = true;
+      }
+      else if (key.isPressed('2')) {
+          unit.castSpellByIndex(2);
+          unit.isCasting = true;
+      }
+      else if (key.isPressed('3')) {
+          unit.castSpellByIndex(3);
+          unit.isCasting = true;
+      }
+      else if (key.isPressed('4')) {
+          unit.castSpellByIndex(4);
+          unit.isCasting = true;
+      }
+      else if (key.isPressed('5')) {
+          unit.castSpellByIndex(5);
+          unit.isCasting = true;
       }
 
-      if (key.isPressed('5')) {
+      if (key.isPressed('n') && !this.displayIdUpdated) {
+        unit.currentDisplayIndex = (unit.currentDisplayIndex + 1) % unit.displayIdsList.length; // Increment and wrap around
+        unit.setNewDisplayID(unit.displayIdsList[unit.currentDisplayIndex].id);
+        unit.name = unit.displayIdsList[unit.currentDisplayIndex].name;
+        this.displayIdUpdated = true;
+      }
+      if(this.displayIdUpdated) {
+        this.displayIdUpdatedCounter += 1;
+        if(this.displayIdUpdatedCounter > 5) {
+          this.displayIdUpdated = false;
+          this.displayIdUpdatedCounter = 0;
+        }
+      }
+
+      if (key.isPressed('t') && !this.targetUpdated) {
         //unit.targetunit.setVisible(false);
         unit.currentTargetIndex = (unit.currentTargetIndex + 1) % unit.player_list.length;
         unit.targetunit = unit.player_list[unit.currentTargetIndex];
+        unit.target = unit.targetunit;
+        this.targetUpdated = true;
         //unit.targetunit.setVisible(true);
-        console.log("Switched to target index: " + unit.currentTargetIndex);
+      }
+      if(this.targetUpdated) {
+        this.targetUpdatedCounter += 1;
+        if(this.targetUpdatedCounter > 5) {
+          this.targetUpdated = false;
+          this.targetUpdatedCounter = 0;
+        }
       }
 
-      if (unit.isCasting) {
-        unit.updateSpellPosition(delta);
-      }
+      //if (unit.isCasting) {
+      //  //unit.updateSpellPosition(delta);
+      //}
 
-      if (key.isPressed('t')) {
+      unit.spell_list.forEach(spell => {
+        if (spell.isCasting) {
+          unit.spell = spell;
+          unit.updateSpellPosition(delta);
+        }
+      });
+
+      if (key.isPressed('v')) {
         if (unit.mapId === unit.targetunit.mapId) {
           unit.targetunit.castSpell();
           unit.targetunit.isCasting = true;

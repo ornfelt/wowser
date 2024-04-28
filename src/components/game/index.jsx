@@ -71,6 +71,7 @@ class GameScreen extends React.Component {
   }
 
   animate() {
+    this.refs.hud.forceUpdate();
     if (!this.renderer) {
       return;
     }
@@ -97,7 +98,7 @@ class GameScreen extends React.Component {
     return (
       <div className="game screen">
         <canvas ref="canvas"></canvas>
-        <HUD />
+        <HUD ref="hud" />
         <Controls ref="controls" for={ session.player } camera={ this.camera } />
         <Stats ref="stats" renderer={ this.renderer } map={ session.world.map } />
       </div>
