@@ -1,5 +1,5 @@
 {
-	"clientData": "C:\Users\jonas\OneDrive\Documents\Games\wow\Data",
+	"clientData": "/mnt/new/wow/Data",
 	"clusterWorkerCount": 8,
 	"isFirstRun": false,
 	"serverPort": "3000"

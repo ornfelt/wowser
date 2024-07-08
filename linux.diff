@@ -1,0 +1,83 @@
+diff --git a/lib/server/pipeline/index.js b/lib/server/pipeline/index.js
+index 92ddebf..f9baeb1 100644
+--- a/lib/server/pipeline/index.js
++++ b/lib/server/pipeline/index.js
+@@ -166,37 +166,37 @@ class Pipeline {
+     }
+   }
+
+-  //blp(req, res) {
+-  //  _blp2.default.from(req.resource.data, function (blp) {
+-  //    var mipmap = blp.largest;
+-
+-  //    var png = new _pngjs.PNG({ width: mipmap.width, height: mipmap.height });
+-  //    png.data = mipmap.rgba;
++  blp(req, res) {
++    _blp2.default.from(req.resource.data, function (blp) {
++      var mipmap = blp.largest;
+
+-  //    res.type('image/png');
+-  //    png.pack().pipe(res);
+-  //  });
+-  //}
++      var png = new _pngjs.PNG({ width: mipmap.width, height: mipmap.height });
++      png.data = mipmap.rgba;
+
+-  blp(req, res) {
+-    // Base path for PNG files
+-    //const basePath = 'D:\\My_files\\mpqeditor_en\\x64\\Work';
+-    const basePath = 'C:\\Users\\jonas\\Downloads\\mpqeditor_en\\x64\\Work';
+-
+-    // Construct the path to the .png file based on the original request
+-    // Replace '.BLP.png' with '.png' in the request URL and prepend the base path
+-    const pngFilePath = path.join(basePath, req.params.resource.replace('.BLP', '') + '.png');
+-
+-    // Check if the PNG file exists
+-    fs.exists(pngFilePath, (exists) => {
+-      if (exists) {
+-        res.sendFile(pngFilePath);
+-      } else {
+-        res.status(404).send('Not Found');
+-      }
++      res.type('image/png');
++      png.pack().pipe(res);
+     });
+   }
+
++  //blp(req, res) {
++  //  // Base path for PNG files
++  //  //const basePath = 'D:\\My_files\\mpqeditor_en\\x64\\Work';
++  //  const basePath = 'C:\\Users\\jonas\\Downloads\\mpqeditor_en\\x64\\Work';
++
++  //  // Construct the path to the .png file based on the original request
++  //  // Replace '.BLP.png' with '.png' in the request URL and prepend the base path
++  //  const pngFilePath = path.join(basePath, req.params.resource.replace('.BLP', '') + '.png');
++
++  //  // Check if the PNG file exists
++  //  fs.exists(pngFilePath, (exists) => {
++  //    if (exists) {
++  //      res.sendFile(pngFilePath);
++  //    } else {
++  //      res.status(404).send('Not Found');
++  //    }
++  //  });
++  //}
++
+   dbc(req, res) {
+     var name = req.resourcePath.match(/(\w+)\.dbc/)[1];
+     var definition = DBC[name];
+diff --git a/lib/server/pipeline/navigation.js b/lib/server/pipeline/navigation.js
+index 3d2cee3..022a266 100644
+--- a/lib/server/pipeline/navigation.js
++++ b/lib/server/pipeline/navigation.js
+@@ -29,8 +29,8 @@ var XYZPtr = refNapi.refType(XYZ);
+
+ // Define the class
+ class Navigation {
+-  static libraryPath = "./Navigation.dll";
+-  //static libraryPath = "./libNavigation";
++  //static libraryPath = "./Navigation.dll";
++  static libraryPath = "./libNavigation";
+
+   // Load the library statically
+   static NavigationLib = new ffiNapi.Library(Navigation.libraryPath, {
