@@ -105,8 +105,8 @@ check_and_copy_library() {
         # Check if the library exists in /usr/local/lib/
         if [ -f "$lib_path" ]; then
             echo "$lib_name found in /usr/local/lib/. Copying to /usr/lib/..."
-            #sudo cp "$lib_path" "$dest_path"
-            #echo "$lib_name copied to /usr/lib/."
+            sudo cp "$lib_path" "$dest_path"
+            echo "$lib_name copied to /usr/lib/."
         else
             echo "$lib_name not found in /usr/local/lib/."
         fi
