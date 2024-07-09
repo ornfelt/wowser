@@ -3,6 +3,7 @@
 ###
 # Apply diff
 ###
+
 # First lazily check if patch is already applied
 navigation_file="./lib/server/pipeline/navigation.js"
 if grep -q '^\s*static libraryPath = "./libNavigation";' "$navigation_file"; then
@@ -18,6 +19,7 @@ fi
 ###
 # Fix wowser.json
 ###
+
 DIRS=(
     "/mnt/new/wow/"
     "$HOME/Downloads/wow/"
@@ -53,6 +55,7 @@ echo "Updated wowser.json with new clientData path: $NEW_PATH"
 ###
 # Check for MySQL or MariaDB
 ###
+
 mysql_installed=false
 mariadb_installed=false
 
@@ -92,6 +95,7 @@ fi
 ###
 # Check for libblp and libstorm
 ###
+
 # Function to check for library installation and copy if necessary
 check_and_copy_library() {
     local lib_name=$1
