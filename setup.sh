@@ -45,7 +45,7 @@ fi
 
 ESCAPED_NEW_PATH=$(echo "$NEW_PATH" | sed 's/\\/\\\\/g')
 
-# Update the wowser.json file with the new path
+# Update wowser.json file with new path
 sed -i "s|\"clientData\": \".*\"|\"clientData\": \"$ESCAPED_NEW_PATH\"|g" wowser.json
 
 echo "Updated wowser.json with new clientData path: $NEW_PATH"
